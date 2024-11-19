@@ -104,7 +104,7 @@ ALLOWED_ORIGINS=*
 RATE_LIMIT_ENABLED=true
 RATE_LIMIT=100
 RATE_LIMIT_WINDOW=1m
-DEFAULT_MODEL=google/gemini-flash-1.5
+DEFAULT_MODEL=openai/gpt-4o-mini
 MAX_TOKENS=8192
 TEMPERATURE=0.4
 ```
@@ -121,16 +121,17 @@ POST /api/v1/extract
 Content-Type: application/json
 
 {
-  "html": "string",
+  "html": string,
   "fields": [
     {
-      "field": "string",
-      "selector": "string",
-      "attributeToGet": "string",
-      "regex": "string",
+      "field": string,
+      "fieldAnalysis": string[],
+      "selector": string,
+      "attributeToGet": string,
+      "regex": string,
       "regexMatchIndexToUse": number,
-      "regexUse": "string",
-      "extractMethod": "string"
+      "regexUse": string,
+      "extractMethod": string
     }
   ]
 }

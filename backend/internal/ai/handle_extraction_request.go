@@ -39,7 +39,7 @@ var MODEL_LIST = []string{
 	"openai/gpt-4o",
 	"openai/gpt-4o-mini",
 	"google/gemini-flash-1.5",
-	"google/gemini-flash-1.5-8b",
+	"google/gemini-pro-1.5",
 }
 
 type ModelPrice struct {
