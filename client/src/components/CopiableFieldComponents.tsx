@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, AlertCircle, Check } from "lucide-react";
+import { cx } from "class-variance-authority";
 
 type CopiableFieldProps = {
   label: string;
@@ -29,6 +30,12 @@ export const CopiableField = ({
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [extractedValue, setExtractedValue] = useState<string | null>(null);
+  const [extractedValueExpanded, setExtractedValueExpanded] =
+    useState<boolean>(false);
+
+  const handleToggleExpanded = () => {
+    setExtractedValueExpanded(!extractedValueExpanded);
+  };
 
   useEffect(() => {
     if (validate && htmlInput && value) {
@@ -200,7 +207,27 @@ export const CopiableField = ({
         <div className="pl-[33.333%] text-sm">
           <div className="bg-green-50 border border-green-200 rounded p-2">
             <div className="text-xs text-green-700 mb-1">Extracted Value:</div>
-            <div className="text-green-900 break-words">{extractedValue}</div>
+            <div className="flex flex-col items-end">
+              <div
+                className={cx("text-green-900 break-words w-full", {
+                  "line-clamp-5":
+                    !extractedValueExpanded && extractedValue.length > 100,
+                  "max-h-none": extractedValueExpanded,
+                })}
+              >
+                {extractedValue}
+              </div>
+              <div>
+                {extractedValue.length > 100 && (
+                  <button
+                    onClick={handleToggleExpanded}
+                    className="mt-1 text-xs bg-blue-50 text-blue-600 hover:text-blue-800 hover:bg-blue-100 font-medium px-2 py-1 rounded-md transition-colors shadow-sm border border-blue-200"
+                  >
+                    {extractedValueExpanded ? "Show less" : "Show more"}
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
