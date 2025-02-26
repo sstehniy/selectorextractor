@@ -35,11 +35,11 @@ type FieldToExtractSelectorsFor struct {
 
 var MODEL_LIST = []string{
 	"anthropic/claude-3-5-haiku",
-	"anthropic/claude-3.5-sonnet",
+	"anthropic/claude-3.7-sonnet",
 	"openai/gpt-4o",
 	"openai/gpt-4o-mini",
-	"google/gemini-flash-1.5",
-	"google/gemini-pro-1.5",
+	"google/gemini-2.0-flash-001",
+	"google/gemini-2.0-flash-lite-001",
 }
 
 type ModelPrice struct {
@@ -52,7 +52,7 @@ var MODEL_PRICE_MAP = map[string]ModelPrice{
 		InputTokens:  1.0,
 		OutputTokens: 5.0,
 	},
-	"anthropic/claude-3.5-sonnet": {
+	"anthropic/claude-3.7-sonnet": {
 		InputTokens:  3.0,
 		OutputTokens: 15.0,
 	},
@@ -61,16 +61,16 @@ var MODEL_PRICE_MAP = map[string]ModelPrice{
 		OutputTokens: 10,
 	},
 	"openai/gpt-4o-mini": {
-		InputTokens:  0.15,
-		OutputTokens: 0.6,
-	},
-	"google/gemini-flash-1.5": {
-		InputTokens:  0.075,
-		OutputTokens: 0.3,
-	},
-	"google/gemini-pro-1.5": {
 		InputTokens:  1.25,
 		OutputTokens: 5.0,
+	},
+	"google/gemini-2.0-flash-001": {
+		InputTokens:  0.1,
+		OutputTokens: 0.4,
+	},
+	"google/gemini-2.0-flash-lite-001": {
+		InputTokens:  0.075,
+		OutputTokens: 0.3,
 	},
 }
 
@@ -125,49 +125,37 @@ func createEmptyResponse(model string, usage TokenUsage) SendExtractionMessageRe
 	}
 }
 
+const MAX_TRIES = 3
+
 func SendExtractionMessageOpenAI(request SendExtractionMessageRequest) (SendExtractionMessageResponse, error) {
 	// If no model specified, use a default model order
-	if request.Model == "" {
-		request.Model = MODEL_LIST[0]
+	model := request.Model
+	if model == "" {
+		model = MODEL_LIST[0]
 	}
 
-	// Create a copy of the model list to use for fallbacks
-	modelFallbacks := make([]string, 0, len(MODEL_LIST))
-	for _, model := range MODEL_LIST {
-		if model != request.Model {
-			modelFallbacks = append(modelFallbacks, model)
-		}
-	}
-
-	// Try the primary model first
-	response, err := attemptExtractionWithModel(request)
-	if err == nil {
-		return response, nil
-	}
-
-	// Log the initial failure
-	logging.ErrorLogger.Printf("Failed to extract with primary model %s: %v", request.Model, err)
-
-	// Attempt fallback models
-	for _, fallbackModel := range modelFallbacks {
-		logging.InfoLogger.Printf("Attempting fallback to model: %s", fallbackModel)
-
-		// Create a new request with the fallback model
-		fallbackRequest := request
-		fallbackRequest.Model = fallbackModel
-
-		response, err := attemptExtractionWithModel(fallbackRequest)
+	try_count := 0
+	total_input_tokens := 0
+	total_output_tokens := 0
+	var err error
+	for try_count < MAX_TRIES {
+		fmt.Println("Attempt", try_count+1)
+		response, err := attemptExtractionWithModel(request)
 		if err == nil {
-			logging.InfoLogger.Printf("Successfully extracted using fallback model: %s", fallbackModel)
+			fmt.Println("Success")
 			return response, nil
+		} else {
+			total_input_tokens += response.Usage.InputTokens
+			total_output_tokens += response.Usage.OutputTokens
+			try_count++
 		}
-
-		// Log fallback attempt failure
-		logging.ErrorLogger.Printf("Fallback to model %s failed: %v", fallbackModel, err)
 	}
-
-	// If all models fail, return the last error
-	return createEmptyResponse(request.Model, TokenUsage{}),
+	fmt.Println("Failed")
+	// If it fails, return the last error
+	return createEmptyResponse(request.Model, TokenUsage{
+			InputTokens:  total_input_tokens,
+			OutputTokens: total_output_tokens,
+		}),
 		fmt.Errorf("extraction failed with all models: last error was %v", err)
 }
 

@@ -54,7 +54,7 @@ func Load() *Config {
 		},
 		AI: AIConfig{
 			OpenRouterAPIKey: os.Getenv("OPENROUTER_API_KEY"),
-			DefaultModel:     getEnvOrDefault("DEFAULT_MODEL", "google/gemini-flash-1.5"),
+			DefaultModel:     getEnvOrDefault("DEFAULT_MODEL", "google/gemini-2.0-flash-001"),
 			MaxTokens:        getIntEnvOrDefault("MAX_TOKENS", 8192),
 			Temperature:      getFloatEnvOrDefault("TEMPERATURE", 0.4),
 		},
