@@ -38,8 +38,12 @@ export default function Component({ versionedResult, fields }: Props) {
     if (!selector) {
       return "No selector provided";
     }
-    const element = doc.querySelector(selector);
-    return element ? element.outerHTML : "No HTML content found";
+    try {
+      const element = doc.querySelector(selector);
+      return element ? element.outerHTML : "No HTML content found";
+    } catch {
+      return `Unsupported selector: ${selector}`;
+    }
   };
 
   return (
@@ -144,15 +148,17 @@ export default function Component({ versionedResult, fields }: Props) {
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-3 pt-1">
                   <div className="grid gap-2 text-sm">
-                    <CopiableField
-                      label="Selector"
-                      value={field.selector}
-                      fieldId={`selector-${field.field}`}
-                      htmlInput={versionedResult.htmlInput}
-                      validate={true}
-                      extractMethod={field.extractMethod}
-                      selector={field.selector}
-                    />
+                    {field.selector && (
+                      <CopiableField
+                        label="Selector"
+                        value={field.selector}
+                        fieldId={`selector-${field.field}`}
+                        htmlInput={versionedResult.htmlInput}
+                        validate={true}
+                        extractMethod={field.extractMethod}
+                        selector={field.selector}
+                      />
+                    )}
 
                     {field.attributeToGet && (
                       <CopiableField
@@ -175,6 +181,19 @@ export default function Component({ versionedResult, fields }: Props) {
                         regexUse={field.regexUse}
                         regexMatchIndex={field.regexMatchIndexToUse}
                         selector={field.selector}
+                      />
+                    )}
+
+                    {field.javaScriptFunction && (
+                      <CopiableField
+                        label="JavaScript Function"
+                        value={field.javaScriptFunction}
+                        fieldId={`js-function-${field.field}`}
+                        htmlInput={versionedResult.htmlInput}
+                        validate={true}
+                        extractMethod="javascript"
+                        selector={field.selector}
+                        javaScriptFunction={field.javaScriptFunction}
                       />
                     )}
                   </div>

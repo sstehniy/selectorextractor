@@ -1,30 +1,24 @@
 const iconMap: Record<string, JSX.Element> = {
-  anthropic: (
+  xai: (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      shapeRendering="geometricPrecision"
-      textRendering="geometricPrecision"
-      imageRendering="optimizeQuality"
+      fill="currentColor"
       fillRule="evenodd"
-      clipRule="evenodd"
-      width={15}
       height={15}
-      viewBox="0 0 512 512"
+      width={15}
+      style={{ flex: "none", lineHeight: "1" }}
+      viewBox="0 0 24 24"
     >
-      <rect fill="#CC9B7A" width="512" height="512" rx="104.187" ry="105.042" />
-      <path
-        fill="#1F1F1E"
-        fillRule="nonzero"
-        d="M318.663 149.787h-43.368l78.952 212.423 43.368.004-78.952-212.427zm-125.326 0l-78.952 212.427h44.255l15.932-44.608 82.846-.004 16.107 44.612h44.255l-79.126-212.427h-45.317zm-4.251 128.341l26.91-74.701 27.083 74.701h-53.993z"
-      />
+      <title>Grok</title>
+      <path d="M6.469 8.776L16.512 23h-4.464L2.005 8.776H6.47zm-.004 7.9l2.233 3.164L6.467 23H2l4.465-6.324zM22 2.582V23h-3.659V7.764L22 2.582zM22 1l-9.952 14.095-2.233-3.163L17.533 1H22z" />
     </svg>
   ),
   openai: (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       fill="#000000"
-      width="15px"
-      height="15px"
+      width={15}
+      height={15}
       viewBox="0 0 24 24"
       role="img"
     >
@@ -94,51 +88,42 @@ type SelectOptionsArray =
 
 export const selectOptions: SelectOptionsArray = [
   {
-    label: "GPT-4o Mini",
-    value: "openai/gpt-4o-mini",
-    icon: iconMap.openai,
+    label: "Grok 3 Mini",
+    value: "x-ai/grok-3-mini",
+    icon: iconMap.xai,
     priceIndicator: PriceIndicator.LOW,
     color: "#171717",
     isDefault: true,
   },
   {
-    label: "3.5 Haiku",
-    value: "anthropic/claude-3-5-haiku",
-    icon: iconMap.anthropic,
+    label: "Gemini 2.5 Flash",
+    value: "google/gemini-2.5-flash",
+    icon: iconMap.google,
     priceIndicator: PriceIndicator.MEDIUM,
-    color: "#cb9b7a",
+    color: "#4b8cd6",
     isDefault: false,
   },
   {
-    label: "3.7 Sonnet",
-    value: "anthropic/claude-3.7-sonnet",
-    icon: iconMap.anthropic,
-    priceIndicator: PriceIndicator.HIGH,
-    color: "#cb9b7a",
-    isDefault: false,
-  },
-  {
-    label: "GPT-4o",
-    value: "openai/gpt-4o",
-    icon: iconMap.openai,
-    priceIndicator: PriceIndicator.HIGH,
-    color: "#171717",
-    isDefault: false,
-  },
-
-  {
-    label: "Gemini Flash 2 Flash",
-    value: "google/gemini-2.0-flash-001",
+    label: "Gemini 2.5 Flash 05-20",
+    value: "google/gemini-2.5-flash-preview-05-20",
     icon: iconMap.google,
     priceIndicator: PriceIndicator.LOW,
     color: "#4b8cd6",
     isDefault: false,
   },
   {
-    label: "Gemini Flash 2.0 Flash Lite",
-    value: "google/gemini-2.0-flash-lite-001",
+    label: "Gemini 2.5 Flash Lite",
+    value: "google/gemini-2.5-flash-lite-preview-06-17",
     icon: iconMap.google,
     priceIndicator: PriceIndicator.LOW,
+    color: "#4b8cd6",
+    isDefault: false,
+  },
+  {
+    label: "Gemini 2.5 Pro",
+    value: "google/gemini-2.5-pro",
+    icon: iconMap.google,
+    priceIndicator: PriceIndicator.HIGH,
     color: "#4b8cd6",
     isDefault: false,
   },

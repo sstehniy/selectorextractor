@@ -10,10 +10,11 @@ type CopiableFieldProps = {
   fieldId: string;
   htmlInput?: string;
   validate?: boolean;
-  extractMethod?: "textContent" | "innerHTML" | "innerText";
+  extractMethod?: "textContent" | "innerHTML" | "innerText" | "javascript";
   selector: string;
   regexUse?: "extract" | "omit";
   regexMatchIndex?: number;
+  javaScriptFunction?: string;
 };
 
 export const CopiableField = ({
@@ -26,9 +27,10 @@ export const CopiableField = ({
   regexUse = "extract",
   regexMatchIndex = 0,
   selector = "",
+  javaScriptFunction = "",
 }: CopiableFieldProps) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [isValid, setIsValid] = useState<boolean | null>(null);
+  const [isValid, setIsValid] = useState<boolean | null>(true);
   const [extractedValue, setExtractedValue] = useState<string | null>(null);
   const [extractedValueExpanded, setExtractedValueExpanded] =
     useState<boolean>(false);
@@ -38,66 +40,79 @@ export const CopiableField = ({
   };
 
   useEffect(() => {
-    if (validate && htmlInput && value) {
+    // Reset state if validation isn't active or required inputs are missing
+    if (!validate || !htmlInput) {
+      setIsValid(null);
+      setExtractedValue(null);
+      return;
+    }
+
+    // Centralized result setter to update state
+    const setValidationResult = (
+      validStatus: boolean | null,
+      val: string | null,
+    ) => {
+      setIsValid(validStatus);
+      setExtractedValue(val ? val.trim() : null);
+    };
+
+    // Helper to get content from a DOM element based on the extract method
+    const getContentFromElement = (
+      element: Element,
+      method: "textContent" | "innerHTML" | "innerText" | "javascript",
+    ): string => {
+      switch (method) {
+        case "innerHTML":
+          return element.innerHTML;
+        case "innerText":
+          // @ts-ignore
+          return element.innerText || "";
+        case "textContent":
+        default:
+          return element.textContent || "";
+      }
+    };
+
+    const runValidation = () => {
       try {
+        const doc = new DOMParser().parseFromString(htmlInput, "text/html");
+
+        // --- Selector Validation ---
         if (label === "Selector") {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(htmlInput, "text/html");
-          if (!value) {
-            setIsValid(false);
-            setExtractedValue(null);
-            return;
-          }
-          const elements = doc.querySelectorAll(value);
-          const found = elements.length > 0;
-          setIsValid(found);
-
-          if (found) {
-            let extractedContent = "";
-            switch (extractMethod) {
-              case "innerHTML":
-                extractedContent = elements[0].innerHTML;
-                break;
-              case "innerText":
-                // @ts-ignore
-                extractedContent = elements[0].innerText;
-                break;
-              case "textContent":
-              default:
-                extractedContent = elements[0].textContent || "";
-                break;
+          if (!value) return setValidationResult(false, null);
+          try {
+            const elements = doc.querySelectorAll(value);
+            if (elements.length > 0) {
+              const content = getContentFromElement(elements[0], extractMethod);
+              setValidationResult(true, content);
+            } else {
+              setValidationResult(false, null);
             }
-            setExtractedValue(extractedContent.trim());
+          } catch {
+            console.warn("Unsupported selector for validation:", value);
+            setValidationResult(null, null);
           }
-        } else if (label === "Regex") {
-          console.log("Regex:", value);
-          const parser = new DOMParser();
+          return;
+        }
 
-          const doc = parser.parseFromString(htmlInput, "text/html");
-          if (!selector) {
-            setIsValid(false);
-            setExtractedValue(null);
-            return;
+        // --- Regex Validation ---
+        if (label === "Regex") {
+          if (!value) return setValidationResult(true, null); // Empty regex is valid
+          if (!selector) return setValidationResult(false, null);
+
+          let selectorElement;
+          try {
+            selectorElement = doc.querySelector(selector);
+          } catch {
+            console.warn(
+              "Unsupported selector for regex validation:",
+              selector,
+            );
+            return setValidationResult(null, null);
           }
-          const selectorElement = doc.querySelector(selector);
+
           if (selectorElement) {
-            let content = "";
-            switch (extractMethod) {
-              case "innerHTML":
-                content = selectorElement.innerHTML;
-                break;
-              case "innerText":
-                // @ts-ignore
-                content = selectorElement.innerText;
-                break;
-              case "textContent":
-              default:
-                content = selectorElement.textContent || "";
-                break;
-            }
-            // 1. Trim whitespace from start and end
-            // 2. Replace multiple whitespace characters with a single space
-            // 3. Replace HTML non-breaking space entities with regular spaces
+            let content = getContentFromElement(selectorElement, extractMethod);
             content = content
               .trim()
               .replace(/\s+/g, " ")
@@ -106,38 +121,52 @@ export const CopiableField = ({
 
             if (regexUse === "extract") {
               const match = content.match(regex);
-              // log all matches
-              console.log("Matches:", match, content);
               if (match) {
-                setIsValid(true);
                 const extractedMatch = match[regexMatchIndex] || match[0];
-                setExtractedValue(extractedMatch.trim());
+                setValidationResult(true, extractedMatch);
               } else {
-                setIsValid(false);
-                setExtractedValue(null);
+                setValidationResult(false, null);
               }
             } else {
-              console.log("Omitting:", content);
+              // "omit"
               const cleanContent = content.replace(regex, "").trim();
               if (cleanContent !== content) {
-                setIsValid(true);
-                setExtractedValue(cleanContent);
+                setValidationResult(true, cleanContent);
               } else {
-                setIsValid(false);
-                setExtractedValue(null);
+                setValidationResult(false, null);
               }
             }
           } else {
-            setIsValid(false);
-            setExtractedValue(null);
+            setValidationResult(false, null);
           }
+          return;
+        }
+
+        // --- JavaScript Function Validation ---
+        if (label === "JavaScript Function") {
+          const funcMatch = value.match(
+            /function\s*\([^)]*\)\s*\{([\s\S]*)\}$/,
+          );
+          if (!funcMatch) throw new Error("Invalid function format");
+
+          const funcBody = funcMatch[1];
+          const func = new Function("document", funcBody);
+          const result = func(doc);
+
+          if (result !== null && result !== undefined) {
+            setValidationResult(true, String(result));
+          } else {
+            setValidationResult(false, null);
+          }
+          return;
         }
       } catch (error) {
         console.error("Error validating field:", value, error);
-        setIsValid(false);
-        setExtractedValue(null);
+        setValidationResult(false, null);
       }
-    }
+    };
+
+    runValidation();
   }, [
     value,
     htmlInput,
@@ -146,6 +175,8 @@ export const CopiableField = ({
     extractMethod,
     regexUse,
     regexMatchIndex,
+    selector,
+    javaScriptFunction, // Kept for dependency consistency
   ]);
 
   const copyToClipboard = (text: string, field: string) => {
@@ -160,13 +191,16 @@ export const CopiableField = ({
       <div className="grid grid-cols-3 items-center relative group">
         <span className="text-muted-foreground">{label}:</span>
         <code
-          className={`col-span-2 bg-muted px-2 py-1 rounded-sm text-sm font-medium flex items-center justify-between relative border-2 ${
-            isValid === false
-              ? "border-red-300"
-              : isValid === true
-                ? "border-green-300"
-                : "border-gray-300"
-          }`}
+          className={cx(
+            "col-span-2 bg-muted px-2 py-1 rounded-sm text-sm font-medium flex items-center justify-between relative border-2",
+            {
+              "border-red-300": isValid === false,
+              "border-green-300": isValid === true,
+              "border-yellow-300": isValid === null,
+              "border-gray-300":
+                typeof isValid !== "boolean" && isValid !== null,
+            },
+          )}
         >
           <div className="flex items-center gap-2 overflow-hidden">
             {isValid === false && (
@@ -175,7 +209,10 @@ export const CopiableField = ({
             {isValid === true && (
               <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
             )}
-            <span className="truncate">{value}</span>
+            {isValid === null && (
+              <AlertCircle className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+            )}
+            <span className="">{value}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -199,7 +236,21 @@ export const CopiableField = ({
         <div className="text-xs text-red-500 pl-[33.333%]">
           {label === "Selector"
             ? "Selector not found in HTML"
-            : "Regex doesn't match any content"}
+            : label === "JavaScript Function"
+              ? "JavaScript function failed or returned null"
+              : "Regex doesn't match any content"}
+        </div>
+      )}
+
+      {isValid === null && (
+        <div className="text-xs text-yellow-600 pl-[33.333%]">
+          {label === "Selector"
+            ? "Cannot validate selector (uses unsupported pseudo-classes)"
+            : label === "JavaScript Function"
+              ? "Cannot validate JavaScript function"
+              : label === "Regex"
+                ? "Cannot validate regex (selector uses unsupported pseudo-classes)"
+                : ""}
         </div>
       )}
 

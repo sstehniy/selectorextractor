@@ -62,8 +62,9 @@ type ExtractedSelector = {
   attributeToGet: string;
   regex: string;
   regexMatchIndexToUse: number;
-  extractMethod: "textContent" | "innerHTML" | "innerText";
+  extractMethod: "textContent" | "innerHTML" | "innerText" | "javascript";
   regexUse: "extract" | "omit";
+  javaScriptFunction: string;
 };
 
 type FieldAnalysis = {
