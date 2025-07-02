@@ -11,6 +11,10 @@ services:
       - ./backend/logs:/app/logs
     networks:
       - app-network
+    develop:
+      watch:
+        - action: rebuild
+          path: ./backend/internal
 
   frontend:
     build:
@@ -22,6 +26,11 @@ services:
       - backend
     networks:
       - app-network
+    develop:
+      watch:
+        - action: rebuild
+          path: ./client
+
 
 networks:
   app-network:
