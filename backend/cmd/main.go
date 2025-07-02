@@ -47,7 +47,10 @@ func main() {
 	v1 := e.Group("/api/v1")
 	{
 		v1.GET("/health", handlers.HandleHealthCheck)
-		v1.POST("/extract", handlers.HandleExtractionRequest)
+		v1.POST("/extract", func(c echo.Context) error {
+			logging.InfoLogger.Println("Received extraction request")
+			return handlers.HandleExtractionRequest(c, cfg.AI)
+		})
 	}
 
 	// Start server

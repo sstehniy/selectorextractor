@@ -4,4 +4,3 @@
 <fields_to_extract>
 {{FIELDS_TO_EXTRACT}}
 </fields_to_extract>
-PLEASE START YOUR OUTPUT WITH <output_json> AND END WITH </output_json>

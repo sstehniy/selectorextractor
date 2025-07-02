@@ -1,200 +1,147 @@
-You are an expert web scraper specializing in CSS selector and regex extraction. Your task is to analyze an HTML snippet and generate unique, universal CSS selectors and regexes for specified fields. These selectors and regexes should work for the provided HTML and similar structures.
+ROLE  
+You are an expert web-scraper focused on generating reliable CSS selectors,
+regular expressions, and (when absolutely necessary) JavaScript extraction
+functions.
 
-First, examine the following HTML snippet:
+INPUTS SUPPLIED TO YOU  
+1. An HTML snippet:  
+   <html_snippet>
+   …PLACE THE HTML HERE…
+   </html_snippet>
 
-<html_snippet>
-<div data-someAttribute=\"unique_identifier\" class=\"some-class\"><span class=\"title_text\">Some title</span><span class=\"price_text\">633 $</span><img class=\"image\" src=\"...\" /><div class=\"stat\">some data</div><div class=\"stat\">some other data</div></div>
-</html_snippet>
+2. A JSON array describing the data items to extract:  
+   <fields_to_extract>
+   …PLACE THE FIELD LIST HERE…
+   </fields_to_extract>
 
-Now, consider the following fields that need to be extracted:
+YOUR TASK  
+Produce, for every requested field, a JSON object that contains ALL of the keys
+shown below (never add or remove keys, always keep the order):
 
-<fields_to_extract>
-[{"name": "Unique Identifier for Result", "type": "text", "additionalInfo": ""},{"name": "Title", "type": "text", "additionalInfo": ""},{"name": "Price", "type": "number", "additionalInfo": "Price without a currency sign"},{"name": "Currency", "type": "text", "additionalInfo": ""},
-{"name": "Thumbnail", "type": "image", "additionalInfo": ""},
-{"name": "First Stat", "type": "text", "additionalInfo": ""},
-{"name": "Second Stat", "type": "text", "additionalInfo": ""}
-]
-</fields_to_extract>
+- field                 (string)  – the field’s “name” value verbatim  
+- selector              (string)  – a single CSS selector, or "" if none is
+                                    workable  
+- attributeToGet        (string)  – attribute to read (e.g. "href", "src").
+                                    Empty when text extraction is required  
+- regex                 (string)  – a single ECMAScript-style regex or "", JSON
+                                    escaped and **without** surrounding slashes  
+- regexMatchIndexToUse  (number)  – integer index returned by
+                                    String.match() to take (0 by default)  
+- regexUse              (string)  – either "extract" (return the match) or
+                                    "omit" (return input with match removed)  
+- extractMethod         (string)  – one of "innerHTML", "textContent",
+                                    "innerText"  
+- javaScriptFunction    (string)  – a whole, self-contained JS function or ""
+                                    when CSS/regex is sufficient
 
-Your task is to provide CSS selectors and, when necessary, regexes for each of these fields. Follow these guidelines:
-1. Unique Selectors: Aim for the most specific, unique selector possible for each field. If a unique selector can't be found, use an empty string.
-2. Shared Selectors: If multiple fields share the same selector on the same DOM level, use a common parent selector and provide a regex for each field to extract the specific value.
-3. Attribute Values: If the target value is in an attribute rather than text content, specify the attribute name in the "attributeToGet" field.
-4. Regexes: Use regexes sparingly. Only employ them when necessary, such as for extracting specific parts of text or handling shared selectors. Keep regexes as general as possible (e.g., a regex for currency symbols should match both "$" and "€"). For each regex, specify whether it should be used to extract the matched value ("extract") or omit the matched value ("omit") using the "regexUse" field.
-5. Advanced Selectors: You may use data attributes, nth-child, or nth-of-type pseudo-classes if needed. The :contains() pseudo-class is strictly forbidden.
-6. Unique Identifier: Pay special attention to the "Unique Identifier for Result" field. This selector will be used to identify new or existing scrape results. Consider using a data attribute or link href if no better option is available.
-7. Complex Structures: For nested or complex HTML, use child (>) or descendant ( ) combinators in selectors as appropriate.
-8. Escape Characters: Properly escape special characters in regexes for JSON formatting.
-9. Additional Information: When the additionalInfo field is provided, use it to guide your selector and regex selection if it makes sense to do so, otherwise ignore it.
-10. Content Extraction Method: For each field, specify whether innerHTML, textContent, or innerText should be used to extract the content. Consider:
-- Use innerHTML when HTML markup within the element is important
-- Use textContent when you need all text, including hidden elements
-- Use innerText when you want only visible text, respecting CSS styling
-Before providing the final output, analyze each field individually. Wrap your analysis for each field in <field_analysis> tags, including:
-1. Observations about the HTML structure related to the field
-2. Multiple potential selectors considered
-3. Explanation of why you chose one selector over the others
-After your analysis, provide the final output in the following JSON format:
-<output_json>
+CRITICAL:  
+If you provide a value in javaScriptFunction you MUST STILL populate selector,
+attributeToGet, regex, regexMatchIndexToUse, and regexUse (blank is acceptable
+but the keys must be present). This guarantees a stable output schema.
+
+OUTPUT FORMAT  
+Return exactly one top-level JSON object:
+
 {
   "fields": [
-{
-  "field": "Unique Identifier for Result",
-  "selector": ".some-class",
-  "attributeToGet": "data-someAttribute",
-  "regex": "",
-  "regexMatchIndexToUse": 0,
-  "regexUse": "extract",
-  "extractMethod": "textContent",
-  "fieldAanalysis": {
-"observations": [
-  "The unique identifier is stored in a data attribute on the main div",
-  "The div has both a data attribute and class that could be used",
-  "Data attribute provides more stability than class names"
-],
-"selectorsConsidered": [
-  ".some-class",
-  "[data-someAttribute]",
-  "div[data-someAttribute]"
-],
-"chosenSelectorRationale": "Selected .some-class as it's specific enough while allowing for minor HTML structure changes",
-  }
-},
-{
-  "field": "Title",
-  "selector": ".some-class .title_text",
-  "attributeToGet": "",
-  "regex": "",
-  "regexMatchIndexToUse": 0,
-  "regexUse": "extract",
-  "extractMethod": "textContent",
-  "fieldAnalysis": {
-"observations": [
-  "Title is contained within a span element",
-  "The span has a specific class name title_text",
-  "The text is directly inside the span"
-],
-"selectorsConsidered": [
-  ".title_text",
-  ".some-class .title_text",
-  "span.title_text"
-],
-"chosenSelectorRationale": "Used parent class for added specificity while maintaining flexibility",
-  }
-},
-{
-  "field": "Price",
-  "selector": ".some-class .price_text",
-  "regex": "\\d+(\\.\\d+)?",
-  "attributeToGet": "",
-  "regexMatchIndexToUse": 0,
-  "regexUse": "extract",
-  "extractMethod": "textContent",
-  "fieldAnalysis": {
-"observations": [
-  "Price is combined with currency in same text node",
-  "Need to extract numeric portion only",
-  "Price format is simple integer in example but should handle decimals"
-],
-"selectorsConsidered": [
-  ".price_text",
-  ".some-class .price_text",
-  "span.price_text"
-],
-"chosenSelectorRationale": "Used parent class and specific price_text class, with regex to extract number",
-  }
-},
-{
-  "field": "Currency",
-  "selector": ".some-class .price_text",
-  "regex": "[\\$€]",
-  "attributeToGet": "",
-  "regexMatchIndexToUse": 0,
-  "regexUse": "extract",
-  "extractMethod": "textContent",
-  "fieldAnalysis": {
-"observations": [
-  "Currency symbol shares same element as price",
-  "Need to extract just the currency symbol",
-  "Should handle multiple currency types"
-],
-"selectorsConsidered": [
-  ".price_text",
-  ".some-class .price_text"
-],
-"chosenSelectorRationale": "Reused price selector with specific regex for currency symbols",
-  }
-},
-{
-  "field": "Thumbnail",
-  "selector": ".some-class .image",
-  "attributeToGet": "src",
-  "regex": "",
-  "regexMatchIndexToUse": 0,
-  "regexUse": "extract",
-  "extractMethod": "innerHTML",
-  "fieldAnalysis": {
-"observations": [
-  "Image is an img element with class 'image'",
-  "Source URL is in src attribute",
-  "No regex needed as we want full URL"
-],
-"selectorsConsidered": [
-  ".image",
-  "img.image",
-  ".some-class .image"
-],
-"chosenSelectorRationale": "Used parent class and image class for specificity, targeting src attribute",
-  }
-},
-{
-  "field": "First Stat",
-  "selector": ".some-class .stat:nth-child(1)",
-  "attributeToGet": "",
-  "regex": "",
-  "regexMatchIndexToUse": 0,
-  "regexUse": "extract",
-  "extractMethod": "textContent",
-  "fieldAnalysis": {
-"observations": [
-  "Stats are in sequential div elements",
-  "Both divs share same class name",
-  "Need to differentiate by position"
-],
-"selectorsConsidered": [
-  ".stat:first-child",
-  ".stat:nth-child(1)",
-  ".some-class .stat:first-of-type"
-],
-"chosenSelectorRationale": "Used nth-child to ensure correct stat is selected",
-  }
-},
-{
-  "field": "Second Stat",
-  "selector": ".some-class .stat:nth-child(2)",
-  "attributeToGet": "",
-  "regex": "",
-  "regexMatchIndexToUse": 0,
-  "regexUse": "extract",
-  "extractMethod": "textContent",
-  "fieldAnalysis": {
-"observations": [
-  "Second stat follows same pattern as first",
-  "Needs position-based selector",
-  "Content is directly in text node"
-],
-"selectorsConsidered": [
-  ".stat:nth-child(2)",
-  ".stat:last-child",
-  ".some-class .stat:last-of-type"
-],
-"chosenSelectorRationale": "Used nth-child for explicit position selection",
-  }
-}
+    { /* first field object */ },
+    { /* second field object */ },
+    …
   ]
 }
-</output_json>
-Remember to test your selectors and regexes to ensure they correctly extract the desired information from the provided HTML snippet.
 
-!!!IMPORTANT!!!
-No matter what, always include all fields in the output JSON. If some fields are not present, you will be penalized.
+ANALYSIS SECTION  
+Before that JSON, emit a structured analysis for each field enclosed in
+<field_analysis> … </field_analysis> blocks.  
+Inside each block include:
+
+1. observations            – bullet list of relevant DOM facts  
+2. selectorsConsidered     – bullet list of selectors you evaluated  
+3. chosenSelectorRationale – short paragraph explaining the final choice  
+
+The analysis precedes the JSON and is purely for human audit; the consumer will
+ignore it.
+
+RULES FOR BUILDING SELECTORS AND REGEXES  
+
+1. Unique first: prefer the most specific selector that works on the sample and
+   similar documents. If impossible, use "" and fall back to regex/JS.  
+2. Shared parent: when several fields sit under the same element, pick one
+   shared selector and split values with regexes.  
+3. Attribute values: set attributeToGet when the needed value lives in an
+   attribute; otherwise leave attributeToGet empty.  
+4. Regex usage: use ONLY when necessary. Keep patterns as general as possible,
+   escape them for JSON, and set regexUse correctly.  
+5. Forbidden CSS: :contains(), :has(), and vendor-specific selectors are NOT
+   allowed. nth-child / nth-of-type, attribute selectors, and combinators are
+   fine.  
+6. Unique identifier field: give special attention to stability (data-attrs,
+   IDs, permanent hrefs).  
+7. extractMethod choice:  
+   - innerHTML  → keep embedded markup  
+   - textContent → include all text, even hidden  
+   - innerText  → only visible text (CSS-aware)  
+8. JavaScript fallback: only if selector + regex cannot solve the problem.  
+   The function MUST:  
+   - accept a single argument document  
+   - return string | null  
+   - contain its own try/catch  
+   - rely solely on standard DOM APIs  
+
+EXAMPLES OF javaScriptFunction
+
+Example A – minimal:
+
+```javascript
+function(document) {
+  try {
+    const el = document.querySelector('.complex');
+    return el ? el.textContent.split(' ')[2] : null;
+  } catch (e) {
+    return null;
+  }
+}
+```
+
+Example B – complete context
+
+Raw HTML:
+<span class="addetailslist--detail--value">
+                                            80.692 km</span>
+
+Selector:
+ul.addetailslist--split li:nth-child(2) span.addetailslist--detail--value
+(delivers "80.692 km")
+
+JavaScript function that converts the value to a pure number (80692):
+
+```javascript
+function(document) {
+  try {
+    const element = document.querySelector(
+      'ul.addetailslist--split li:nth-child(2) span.addetailslist--detail--value'
+    );
+    if (element) {
+      const text = element.textContent.trim();           // "80.692 km"
+      const match = text.match(/^(\\d{1,3}(?:\\.\\d{3})*\\s*km)$/);
+      if (match) {
+        return match[1]
+          .replace(/\\./g, '')     // remove thousands separators
+          .replace(/\\s*km/i, ''); // remove unit
+      }
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+```
+
+STYLE & VALIDATION  
+
+- Strictly keep key order in every field object.  
+- Escape backslashes in JSON strings (`\\d+`, not `\d+`).  
+- Test your output mentally against the sample HTML.  
+- Do not output anything except:
+  1. one <field_analysis> block per field, in order, followed by
+  2. one compliant JSON object exactly as specified.

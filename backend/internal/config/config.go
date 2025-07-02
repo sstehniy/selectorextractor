@@ -34,7 +34,7 @@ type AIConfig struct {
 	OpenRouterAPIKey string
 	DefaultModel     string
 	MaxTokens        int
-	Temperature      float64
+	Temperature      float32
 }
 
 func Load() *Config {
@@ -54,7 +54,7 @@ func Load() *Config {
 		},
 		AI: AIConfig{
 			OpenRouterAPIKey: os.Getenv("OPENROUTER_API_KEY"),
-			DefaultModel:     getEnvOrDefault("DEFAULT_MODEL", "google/gemini-2.0-flash-001"),
+			DefaultModel:     getEnvOrDefault("DEFAULT_MODEL", "x-ai/grok-3-mini"),
 			MaxTokens:        getIntEnvOrDefault("MAX_TOKENS", 8192),
 			Temperature:      getFloatEnvOrDefault("TEMPERATURE", 0.4),
 		},
@@ -77,10 +77,10 @@ func getIntEnvOrDefault(key string, defaultValue int) int {
 	return defaultValue
 }
 
-func getFloatEnvOrDefault(key string, defaultValue float64) float64 {
+func getFloatEnvOrDefault(key string, defaultValue float32) float32 {
 	if value := os.Getenv(key); value != "" {
-		if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
-			return floatValue
+		if floatValue, err := strconv.ParseFloat(value, 32); err == nil {
+			return float32(floatValue)
 		}
 	}
 	return defaultValue

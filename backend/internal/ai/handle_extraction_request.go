@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
+	"selectorextractor_backend/internal/config"
 	"selectorextractor_backend/internal/logging"
 	"strings"
 
-	"github.com/sashabaranov/go-openai"
+	"github.com/revrost/go-openrouter"
+	"github.com/revrost/go-openrouter/jsonschema"
 )
 
 func getSystemPrompt() string {
@@ -34,12 +37,11 @@ type FieldToExtractSelectorsFor struct {
 }
 
 var MODEL_LIST = []string{
-	"anthropic/claude-3-5-haiku",
-	"anthropic/claude-3.7-sonnet",
-	"openai/gpt-4o",
-	"openai/gpt-4o-mini",
-	"google/gemini-2.0-flash-001",
-	"google/gemini-2.0-flash-lite-001",
+	"x-ai/grok-3-mini",
+	"google/gemini-2.5-flash",
+	"google/gemini-2.5-flash-preview-05-20",
+	"google/gemini-2.5-flash-lite-preview-06-17",
+	"google/gemini-2.5-pro",
 }
 
 type ModelPrice struct {
@@ -48,29 +50,25 @@ type ModelPrice struct {
 }
 
 var MODEL_PRICE_MAP = map[string]ModelPrice{
-	"anthropic/claude-3-5-haiku": {
-		InputTokens:  1.0,
-		OutputTokens: 5.0,
+	"x-ai/grok-3-mini": {
+		InputTokens:  0.3,
+		OutputTokens: 0.5,
 	},
-	"anthropic/claude-3.7-sonnet": {
-		InputTokens:  3.0,
-		OutputTokens: 15.0,
+	"google/gemini-2.5-flash": {
+		InputTokens:  0.3,
+		OutputTokens: 2.5,
 	},
-	"openai/gpt-4o": {
-		InputTokens:  2.5,
-		OutputTokens: 10,
+	"google/gemini-2.5-flash-preview-05-20": {
+		InputTokens:  0.15,
+		OutputTokens: 0.6,
 	},
-	"openai/gpt-4o-mini": {
-		InputTokens:  1.25,
-		OutputTokens: 5.0,
-	},
-	"google/gemini-2.0-flash-001": {
+	"google/gemini-2.5-flash-lite-preview-06-17": {
 		InputTokens:  0.1,
 		OutputTokens: 0.4,
 	},
-	"google/gemini-2.0-flash-lite-001": {
-		InputTokens:  0.075,
-		OutputTokens: 0.3,
+	"google/gemini-2.5-pro": {
+		InputTokens:  1.25,
+		OutputTokens: 10,
 	},
 }
 
@@ -83,6 +81,10 @@ type SendExtractionMessageRequest struct {
 type TokenUsage struct {
 	InputTokens  int `json:"input_tokens"`
 	OutputTokens int `json:"output_tokens"`
+}
+
+type OpenRouterResponseSchema struct {
+	Fields []ExtractedSelector `json:"fields"`
 }
 
 type SendExtractionMessageResponse struct {
@@ -109,6 +111,7 @@ type ExtractedSelector struct {
 	RegexMatchIndexToUse int           `json:"regexMatchIndexToUse"`
 	ExtractMethod        string        `json:"extractMethod"`
 	RegexUse             string        `json:"regexUse"`
+	JavaScriptFunction   string        `json:"javaScriptFunction"`
 }
 
 func createEmptyResponse(model string, usage TokenUsage) SendExtractionMessageResponse {
@@ -127,7 +130,7 @@ func createEmptyResponse(model string, usage TokenUsage) SendExtractionMessageRe
 
 const MAX_TRIES = 3
 
-func SendExtractionMessageOpenAI(request SendExtractionMessageRequest) (SendExtractionMessageResponse, error) {
+func SendExtractionMessageOpenAI(request SendExtractionMessageRequest, config config.AIConfig) (SendExtractionMessageResponse, error) {
 	// If no model specified, use a default model order
 	model := request.Model
 	if model == "" {
@@ -140,7 +143,7 @@ func SendExtractionMessageOpenAI(request SendExtractionMessageRequest) (SendExtr
 	var err error
 	for try_count < MAX_TRIES {
 		fmt.Println("Attempt", try_count+1)
-		response, err := attemptExtractionWithModel(request)
+		response, err := attemptExtractionWithModel(request, config)
 		if err == nil {
 			fmt.Println("Success")
 			return response, nil
@@ -160,7 +163,7 @@ func SendExtractionMessageOpenAI(request SendExtractionMessageRequest) (SendExtr
 }
 
 // New helper function to attempt extraction with a single model
-func attemptExtractionWithModel(request SendExtractionMessageRequest) (SendExtractionMessageResponse, error) {
+func attemptExtractionWithModel(request SendExtractionMessageRequest, config config.AIConfig) (SendExtractionMessageResponse, error) {
 	// Validate the model is in the allowed list
 	var modelFound bool
 	for _, allowedModel := range MODEL_LIST {
@@ -182,7 +185,7 @@ func attemptExtractionWithModel(request SendExtractionMessageRequest) (SendExtra
 	}
 	fieldsToExtractString := string(fieldsToExtractBytes)
 
-	client := GetOpenAIClient()
+	client := openrouter.NewClient(config.OpenRouterAPIKey)
 	systemPrompt := getSystemPrompt()
 	prompt := getPrompt()
 
@@ -192,24 +195,50 @@ func attemptExtractionWithModel(request SendExtractionMessageRequest) (SendExtra
 	logging.InfoLogger.Printf("Sending request to AI API with %d characters of HTML using model %s",
 		len(request.HTML), request.Model)
 
-	messages := []openai.ChatCompletionMessage{
+	messages := []openrouter.ChatCompletionMessage{
 		{
-			Role:    openai.ChatMessageRoleSystem,
-			Content: systemPrompt,
+			Role: openrouter.ChatMessageRoleSystem,
+			Content: openrouter.Content{
+				Text: systemPrompt,
+			},
 		},
 		{
-			Role:    openai.ChatMessageRoleUser,
-			Content: prompt,
+			Role: openrouter.ChatMessageRoleUser,
+			Content: openrouter.Content{
+				Text: prompt,
+			},
 		},
 	}
 
+	var response OpenRouterResponseSchema
+	schema, err := jsonschema.GenerateSchemaForType(response)
+	if err != nil {
+		logging.ErrorLogger.Printf("Failed to generate schema for type: %v", err)
+		return createEmptyResponse(request.Model, TokenUsage{}), err
+	}
+
+	maxReasoningTokens := 5000
+	exclude := false
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
-		openai.ChatCompletionRequest{
-			Model:       request.Model,
-			Messages:    messages,
-			MaxTokens:   8192,
-			Temperature: 0.4,
+		openrouter.ChatCompletionRequest{
+			Model:    request.Model,
+			Messages: messages,
+			ResponseFormat: &openrouter.ChatCompletionResponseFormat{
+				Type: openrouter.ChatCompletionResponseFormatTypeJSONSchema,
+				JSONSchema: &openrouter.ChatCompletionResponseFormatJSONSchema{
+					Name:        "extraction_response",
+					Strict:      true,
+					Description: "The response from the AI API",
+					Schema:      schema,
+				},
+			},
+			Reasoning: &openrouter.ChatCompletionReasoning{
+				MaxTokens: &maxReasoningTokens,
+				Exclude:   &exclude,
+			},
+			MaxTokens:   config.MaxTokens,
+			Temperature: config.Temperature,
 		},
 	)
 	if err != nil {
@@ -222,10 +251,9 @@ func attemptExtractionWithModel(request SendExtractionMessageRequest) (SendExtra
 		OutputTokens: resp.Usage.CompletionTokens,
 	}
 
-	logging.InfoLogger.Printf("Received response from AI API. Prompt tokens: %d, Completion tokens: %d",
-		resp.Usage.PromptTokens, resp.Usage.CompletionTokens)
-
-	// Save full response to file
+	b, _ := json.MarshalIndent(resp, "", "\t") // Save full response to file
+	os.WriteFile("response.json", b, 0644)
+	log.Printf("Response: %s", string(b))
 	responseBytes, err := json.MarshalIndent(resp, "", "  ")
 	if err != nil {
 		logging.ErrorLogger.Printf("Failed to marshal response: %v", err)
@@ -237,36 +265,26 @@ func attemptExtractionWithModel(request SendExtractionMessageRequest) (SendExtra
 		return createEmptyResponse(request.Model, usage), fmt.Errorf("failed to save response: %v", err)
 	}
 
-	// Extract content between <output_json> tags
-	responseText := resp.Choices[0].Message.Content
+	jsonStr := resp.Choices[0].Message.Content.Text
 
-	startTag := "<output_json>"
-	endTag := "</output_json>"
-	startIndex := strings.Index(responseText, startTag)
-	endIndex := strings.Index(responseText, endTag)
-
-	if startIndex == -1 || endIndex == -1 {
-		logging.ErrorLogger.Printf("Could not find output_json tags in response")
-		return createEmptyResponse(request.Model, usage), fmt.Errorf("could not find output_json tags in response")
-	}
-
-	jsonStr := responseText[startIndex+len(startTag) : endIndex]
-
-	var response SendExtractionMessageResponse
 	err = json.Unmarshal([]byte(jsonStr), &response)
 	if err != nil {
 		logging.ErrorLogger.Printf("Failed to unmarshal response JSON: %v", err)
 		return createEmptyResponse(request.Model, usage), fmt.Errorf("failed to unmarshal response: %v", err)
 	}
 
-	// Calculate usage and pricing
-	response.Usage = usage
-	response.Model = request.Model
-	response.PriceInputTokens = float64(resp.Usage.PromptTokens) / 1_000_000 * MODEL_PRICE_MAP[request.Model].InputTokens
-	response.PriceOutputTokens = float64(resp.Usage.CompletionTokens) / 1_000_000 * MODEL_PRICE_MAP[request.Model].OutputTokens
-	response.TotalPrice = response.PriceInputTokens + response.PriceOutputTokens
+	priceInputTokens := float64(resp.Usage.PromptTokens) / 1_000_000 * MODEL_PRICE_MAP[request.Model].InputTokens
+	priceOutputTokens := float64(resp.Usage.CompletionTokens)/1_000_000*MODEL_PRICE_MAP[request.Model].OutputTokens + float64(resp.Usage.CompletionTokenDetails.ReasoningTokens)/1_000_000*MODEL_PRICE_MAP[request.Model].OutputTokens
+	apiResponse := SendExtractionMessageResponse{
+		Fields:            response.Fields,
+		Usage:             usage,
+		Model:             request.Model,
+		TotalPrice:        priceInputTokens + priceOutputTokens,
+		PriceInputTokens:  priceInputTokens,
+		PriceOutputTokens: priceOutputTokens,
+	}
 
-	logging.InfoLogger.Printf("Extraction completed successfully. Total price: $%.6f", response.TotalPrice)
+	logging.InfoLogger.Printf("Extraction completed successfully. Total price: $%.6f", apiResponse.TotalPrice)
 
-	return response, nil
+	return apiResponse, nil
 }

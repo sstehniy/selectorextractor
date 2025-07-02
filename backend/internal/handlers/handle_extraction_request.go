@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"selectorextractor_backend/internal/ai"
+	"selectorextractor_backend/internal/config"
 	"selectorextractor_backend/internal/helpers"
 	"selectorextractor_backend/internal/logging"
 	"selectorextractor_backend/internal/response"
@@ -17,7 +18,7 @@ func HandleHealthCheck(c echo.Context) error {
 	})
 }
 
-func HandleExtractionRequest(c echo.Context) error {
+func HandleExtractionRequest(c echo.Context, cfg config.AIConfig) error {
 	logging.InfoLogger.Println("Received extraction request")
 
 	var body ai.SendExtractionMessageRequest
@@ -39,7 +40,7 @@ func HandleExtractionRequest(c echo.Context) error {
 	logging.InfoLogger.Printf("Processing extraction request with model: %s", body.Model)
 
 	// Process request
-	result, err := ai.SendExtractionMessageOpenAI(body)
+	result, err := ai.SendExtractionMessageOpenAI(body, cfg)
 	if err != nil {
 		logging.ErrorLogger.Printf("Failed to process extraction request: %v", err)
 		return response.InternalError(c, "Failed to process extraction request")
