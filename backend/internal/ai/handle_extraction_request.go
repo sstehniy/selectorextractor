@@ -112,6 +112,9 @@ type ExtractedSelector struct {
 	ExtractMethod        string        `json:"extractMethod"`
 	RegexUse             string        `json:"regexUse"`
 	JavaScriptFunction   string        `json:"javaScriptFunction"`
+	TypeScriptFunction   string        `json:"typeScriptFunction"`
+	PythonFunction       string        `json:"pythonFunction"`
+	GoFunction           string        `json:"goFunction"`
 }
 
 func createEmptyResponse(model string, usage TokenUsage) SendExtractionMessageResponse {
@@ -284,6 +287,17 @@ func attemptExtractionWithModel(request SendExtractionMessageRequest, config con
 		PriceOutputTokens: priceOutputTokens,
 	}
 
+	for _, field := range apiResponse.Fields {
+		field.JavaScriptFunction = strings.TrimSpace(field.JavaScriptFunction)
+		field.TypeScriptFunction = strings.TrimSpace(field.TypeScriptFunction)
+		field.PythonFunction = strings.TrimSpace(field.PythonFunction)
+		field.GoFunction = strings.TrimSpace(field.GoFunction)
+		field.Regex = strings.TrimSpace(field.Regex)
+		field.Selector = strings.TrimSpace(field.Selector)
+		field.AttributeToGet = strings.TrimSpace(field.AttributeToGet)
+		field.Field = strings.TrimSpace(field.Field)
+		field.FieldAnalysis.ChosenSelectorRationale = strings.TrimSpace(field.FieldAnalysis.ChosenSelectorRationale)
+	}
 	logging.InfoLogger.Printf("Extraction completed successfully. Total price: $%.6f", apiResponse.TotalPrice)
 
 	return apiResponse, nil
