@@ -35,9 +35,8 @@ shown below (never add or remove keys, always keep the order):
                                     when CSS/regex is sufficient
 
 CRITICAL:  
-If you provide a value in javaScriptFunction you MUST STILL populate selector,
-attributeToGet, regex, regexMatchIndexToUse, and regexUse (blank is acceptable
-but the keys must be present). This guarantees a stable output schema.
+If you provide a value in javaScriptFunction you MUST omit selector,
+attributeToGet, regex, regexMatchIndexToUse, and regexUse (blank values should be set).
 
 OUTPUT FORMAT  
 Return exactly one top-level JSON object:
@@ -49,18 +48,6 @@ Return exactly one top-level JSON object:
     …
   ]
 }
-
-ANALYSIS SECTION  
-Before that JSON, emit a structured analysis for each field enclosed in
-<field_analysis> … </field_analysis> blocks.  
-Inside each block include:
-
-1. observations            – bullet list of relevant DOM facts  
-2. selectorsConsidered     – bullet list of selectors you evaluated  
-3. chosenSelectorRationale – short paragraph explaining the final choice  
-
-The analysis precedes the JSON and is purely for human audit; the consumer will
-ignore it.
 
 RULES FOR BUILDING SELECTORS AND REGEXES  
 
@@ -75,13 +62,11 @@ RULES FOR BUILDING SELECTORS AND REGEXES
 5. Forbidden CSS: :contains(), :has(), and vendor-specific selectors are NOT
    allowed. nth-child / nth-of-type, attribute selectors, and combinators are
    fine.  
-6. Unique identifier field: give special attention to stability (data-attrs,
-   IDs, permanent hrefs).  
-7. extractMethod choice:  
+6. extractMethod choice:  
    - innerHTML  → keep embedded markup  
    - textContent → include all text, even hidden  
    - innerText  → only visible text (CSS-aware)  
-8. JavaScript fallback: only if selector + regex cannot solve the problem.  
+7. JavaScript fallback: only if selector + regex cannot solve the problem.  
    The function MUST:  
    - accept a single argument document  
    - return string | null  
@@ -90,7 +75,7 @@ RULES FOR BUILDING SELECTORS AND REGEXES
 
 EXAMPLES OF javaScriptFunction
 
-Example A – minimal:
+Example A - minimal:
 
 ```javascript
 function(document) {
@@ -103,7 +88,7 @@ function(document) {
 }
 ```
 
-Example B – complete context
+Example B - complete context
 
 Raw HTML:
 <span class="addetailslist--detail--value">
@@ -113,7 +98,7 @@ Selector:
 ul.addetailslist--split li:nth-child(2) span.addetailslist--detail--value
 (delivers "80.692 km")
 
-JavaScript function that converts the value to a pure number (80692):
+JavaScript that converts the value to a pure number (80692):
 
 ```javascript
 function(document) {
