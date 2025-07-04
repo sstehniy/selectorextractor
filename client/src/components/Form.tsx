@@ -285,13 +285,13 @@ export const Form = ({
               }
               defaultValue={selectOptions[0].value}
             >
-              <SelectTrigger className="h-full bg-white/25 border-0 focus:ring-0 text-white font-medium rounded-md">
+              <SelectTrigger className="h-full bg-white/25 border-0  focus:ring-0 text-white font-medium rounded-md">
                 <SelectValue
                   placeholder="model"
                   className="flex items-center gap-1.5"
                 />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="top-2">
                 {selectOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     <div className="flex items-center gap-1.5">

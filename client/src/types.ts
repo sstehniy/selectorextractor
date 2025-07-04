@@ -28,6 +28,9 @@ type ExtractedSelector = {
   extractMethod: "textContent" | "innerHTML" | "innerText";
   regexUse: "extract" | "omit";
   javaScriptFunction: string;
+  typeScriptFunction: string;
+  pythonFunction: string;
+  goFunction: string;
 };
 
 type FieldAnalysis = {

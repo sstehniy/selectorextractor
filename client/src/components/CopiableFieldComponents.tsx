@@ -2,7 +2,7 @@
 import { useState, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, AlertCircle, Check } from "lucide-react";
-import { cx } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 type CopiableFieldProps = {
   label: string;
@@ -10,11 +10,10 @@ type CopiableFieldProps = {
   fieldId: string;
   htmlInput?: string;
   validate?: boolean;
-  extractMethod?: "textContent" | "innerHTML" | "innerText" | "javascript";
+  extractMethod?: "textContent" | "innerHTML" | "innerText" | "code";
   selector: string;
   regexUse?: "extract" | "omit";
   regexMatchIndex?: number;
-  javaScriptFunction?: string;
 };
 
 export const CopiableField = memo(
@@ -28,7 +27,6 @@ export const CopiableField = memo(
     regexUse = "extract",
     regexMatchIndex = 0,
     selector = "",
-    javaScriptFunction = "",
   }: CopiableFieldProps) => {
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [isValid, setIsValid] = useState<boolean | null>(true);
@@ -60,7 +58,7 @@ export const CopiableField = memo(
       // Helper to get content from a DOM element based on the extract method
       const getContentFromElement = (
         element: Element,
-        method: "textContent" | "innerHTML" | "innerText" | "javascript",
+        method: "textContent" | "innerHTML" | "innerText" | "code",
       ): string => {
         switch (method) {
           case "innerHTML":
@@ -150,7 +148,7 @@ export const CopiableField = memo(
           }
 
           // --- JavaScript Validation ---
-          if (label === "JavaScript") {
+          if (label === "Code") {
             const funcMatch = value.match(
               /function\s*\([^)]*\)\s*\{([\s\S]*)\}$/,
             );
@@ -183,7 +181,6 @@ export const CopiableField = memo(
       regexUse,
       regexMatchIndex,
       selector,
-      javaScriptFunction, // Kept for dependency consistency
     ]);
 
     const copyToClipboard = (text: string, field: string) => {
@@ -195,10 +192,10 @@ export const CopiableField = memo(
 
     return (
       <div className="space-y-2">
-        <div className="grid grid-cols-10 items-center relative group">
+        <div className="grid grid-cols-10 items-start relative group">
           <span className="text-muted-foreground col-span-2">{label}:</span>
           <code
-            className={cx(
+            className={cn(
               "col-span-8 bg-muted px-2 py-1 rounded-sm text-sm font-medium flex items-center justify-between relative border-2",
               {
                 "border-red-300": isValid === false,
@@ -219,11 +216,7 @@ export const CopiableField = memo(
               {isValid === null && (
                 <AlertCircle className="h-4 w-4 text-yellow-500 flex-shrink-0" />
               )}
-              {label === "JavaScript" ? (
-                <pre className="overflow-x-auto">{value}</pre>
-              ) : (
-                <span className="">{value}</span>
-              )}
+              <span className="">{value}</span>
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -247,9 +240,7 @@ export const CopiableField = memo(
           <div className="text-xs text-red-500 pl-[20%]">
             {label === "Selector"
               ? "Selector not found in HTML"
-              : label === "JavaScript"
-                ? "JavaScript failed or returned null"
-                : "Regex doesn't match any content"}
+              : "Regex doesn't match any content"}
           </div>
         )}
 
@@ -257,11 +248,9 @@ export const CopiableField = memo(
           <div className="text-xs text-yellow-600 pl-[20%]">
             {label === "Selector"
               ? "Cannot validate selector (uses unsupported pseudo-classes)"
-              : label === "JavaScript"
-                ? "Cannot validate JavaScript"
-                : label === "Regex"
-                  ? "Cannot validate regex (selector uses unsupported pseudo-classes)"
-                  : ""}
+              : label === "Regex"
+                ? "Cannot validate regex (selector uses unsupported pseudo-classes)"
+                : ""}
           </div>
         )}
 
@@ -273,7 +262,7 @@ export const CopiableField = memo(
               </div>
               <div className="flex flex-col items-end">
                 <div
-                  className={cx("text-green-900 break-words w-full", {
+                  className={cn("text-green-900 break-words w-full", {
                     "line-clamp-5":
                       !extractedValueExpanded && extractedValue.length > 100,
                     "max-h-none": extractedValueExpanded,

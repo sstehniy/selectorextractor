@@ -19,6 +19,7 @@ import {
 import { CopiableField, CopiableSelector } from "./CopiableFieldComponents";
 import { VersionedExtractionResult } from "@/types";
 import { Option, selectOptions } from "@/modelSelectConfig";
+import { CodeBlockComponent } from "./CodeBlock";
 
 type ResultComponentProps = {
   versionedResult: VersionedExtractionResult;
@@ -93,6 +94,11 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
             fieldType === "IMAGE"
               ? extractImageSrc(field.selector, versionedResult.htmlInput)
               : null;
+          const hasCode =
+            field.javaScriptFunction ||
+            field.typeScriptFunction ||
+            field.pythonFunction ||
+            field.goFunction;
           return (
             <div key={index} className="space-y-2">
               <div className="flex items-center gap-2">
@@ -203,16 +209,14 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                         />
                       )}
 
-                      {field.javaScriptFunction && (
-                        <CopiableField
-                          label="JavaScript"
-                          value={field.javaScriptFunction}
-                          fieldId={`js-function-${field.field}`}
-                          htmlInput={versionedResult.htmlInput}
-                          validate={true}
-                          extractMethod="javascript"
-                          selector={field.selector}
+                      {hasCode && (
+                        <CodeBlockComponent
                           javaScriptFunction={field.javaScriptFunction}
+                          typeScriptFunction={field.typeScriptFunction}
+                          pythonFunction={field.pythonFunction}
+                          goFunction={field.goFunction}
+                          fieldName={field.field.toLowerCase()}
+                          htmlInput={versionedResult.htmlInput}
                         />
                       )}
 
