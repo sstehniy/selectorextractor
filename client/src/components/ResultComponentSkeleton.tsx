@@ -28,7 +28,7 @@ export const ResultComponentSkeleton = () => {
 
             <div className="space-y-2">
               {/* Field Analysis Section */}
-              <div className="border rounded-lg">
+              <div className="border rounded">
                 <div className="px-4 py-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Skeleton className="h-4 w-4" />
@@ -39,7 +39,7 @@ export const ResultComponentSkeleton = () => {
               </div>
 
               {/* Result Section */}
-              <div className="border rounded-lg">
+              <div className="border rounded">
                 <div className="px-4 py-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Skeleton className="h-4 w-4" />

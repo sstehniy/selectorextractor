@@ -37,10 +37,10 @@ const FieldItem = memo(
             name={`${field.id}-name`}
             placeholder="Name"
             defaultValue={"Title"}
-            className="bg-white rounded-md shadow-sm"
+            className="bg-background rounded shadow-sm"
           />
           {errors[`field-${field.id}-name`] && (
-            <p className="text-red-500 text-xs mt-1">
+            <p className="text-error-500 text-xs mt-1">
               {errors[`field-${field.id}-name`]}
             </p>
           )}
@@ -48,7 +48,7 @@ const FieldItem = memo(
 
         <div>
           <Select name={`${field.id}-type`} defaultValue={field.type}>
-            <SelectTrigger className="w-[110px] bg-white rounded-md shadow-sm">
+            <SelectTrigger className="w-[110px] bg-background rounded shadow-sm">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -63,17 +63,17 @@ const FieldItem = memo(
         <Input
           name={`${field.id}-additionalInfo`}
           placeholder="Additional Info"
-          className="flex-1 bg-white rounded-md shadow-sm"
+          className="flex-1 bg-background rounded shadow-sm"
         />
 
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="icon"
           onClick={() => removeField(field.id)}
-          className="shrink-0 hover:bg-red-50 hover:border-red-500 transition-colors duration-200"
+          className="shrink-0 hover:bg-primary/10 hover:border-primary transition-colors duration-200"
         >
-          <X className="h-4 w-4 hover:text-red-500" />
+          <X className="h-4 w-4 hover:text-primary" />
         </Button>
       </div>
     );
@@ -191,10 +191,10 @@ export const Form = ({
           value={htmlInput}
           onChange={handleHtmlInputChange}
           placeholder="Paste your HTML here"
-          className="min-h-[150px] bg-white  rounded-md shadow-sm"
+          className="min-h-[150px] bg-background rounded shadow-sm"
         />
         {errors.htmlInput && (
-          <p className="text-red-500 text-sm mt-1">{errors.htmlInput}</p>
+          <p className="text-error-500 text-sm mt-1">{errors.htmlInput}</p>
         )}
 
         {attachmentsMemoToShow.length > 0 && (
@@ -202,7 +202,7 @@ export const Form = ({
             {attachmentsMemoToShow.map((attachment) => (
               <div
                 key={attachment.id}
-                className="p-3 bg-white border  rounded-md shadow-sm relative group  transition-colors duration-200"
+                className="p-3 bg-background border rounded shadow-sm relative group transition-colors duration-200"
               >
                 <p className="text-sm  truncate pr-8">
                   {attachment.content}...
@@ -214,7 +214,7 @@ export const Form = ({
                       variant="ghost"
                       size="icon"
                       onClick={() => copyAttachment(attachment.id)}
-                      className="absolute right-10 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white"
+                      className="absolute right-12 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-background"
                     >
                       <Copy className="h-4 w-4  hover:" />
                     </Button>
@@ -256,7 +256,7 @@ export const Form = ({
           type="button"
           variant="outline"
           onClick={addField}
-          className="mt-2 hover:bg-blue-50 transition-colors duration-200"
+          className="mt-2 hover:bg-primary/10 transition-colors duration-200"
         >
           <Plus className="h-4 w-4" />
           Add Field
@@ -268,11 +268,11 @@ export const Form = ({
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full  duration-300 shadow-md transition-all pr-52 bg-primary rounded-lg"
+            className="w-full  duration-300 shadow-md transition-all pr-52 bg-primary rounded"
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
                 Analyzing...
               </div>
             ) : (
@@ -287,13 +287,13 @@ export const Form = ({
               }
               defaultValue={selectOptions[0].value}
             >
-              <SelectTrigger className="h-full bg-white/25 border-0  focus:ring-0 text-white font-medium rounded-md">
+              <SelectTrigger className="h-full bg-white/20 dark:bg-neutral-950 border-0 focus:ring-1 focus:ring-white/30 dark:focus:ring-neutral-300/20 text-white dark:text-neutral-200 font-medium rounded-[6px] hover:bg-white/30 dark:hover:bg-neutral-950/80 transition-colors">
                 <SelectValue
                   placeholder="model"
                   className="flex items-center gap-1.5"
                 />
               </SelectTrigger>
-              <SelectContent className="top-2">
+              <SelectContent className="top-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shadow-lg">
                 {selectOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     <div className="flex items-center gap-1.5">

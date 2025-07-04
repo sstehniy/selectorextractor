@@ -3,11 +3,12 @@ import { PriceIndicator as PriceIndicatorType } from "../modelSelectConfig";
 export const PriceIndicator = ({ level }: { level: PriceIndicatorType }) => {
   const getColor = (index: number) => {
     if (level === PriceIndicatorType.LOW && index === 0)
-      return "text-green-500";
+      return "text-success-500";
     if (level === PriceIndicatorType.MEDIUM && index <= 1)
-      return "text-yellow-500";
-    if (level === PriceIndicatorType.HIGH && index <= 2) return "text-red-500";
-    return "text-gray-300";
+      return "text-warning-500";
+    if (level === PriceIndicatorType.HIGH && index <= 2)
+      return "text-error-500";
+    return "text-neutral-300";
   };
 
   return (

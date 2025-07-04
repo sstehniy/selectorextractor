@@ -196,7 +196,7 @@ export const CopiableField = memo(
           <span className="text-muted-foreground col-span-2">{label}:</span>
           <code
             className={cn(
-              "col-span-8 bg-muted px-2 py-1 rounded-sm text-sm font-medium flex items-center justify-between relative border-2",
+              "col-span-8 bg-muted px-2 py-1 rounded text-sm font-medium flex items-center justify-between relative border-2",
               {
                 "border-red-300": isValid === false,
                 "border-green-300": isValid === true,
@@ -208,13 +208,13 @@ export const CopiableField = memo(
           >
             <div className="flex items-center gap-2 overflow-hidden">
               {isValid === false && (
-                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                <AlertCircle className="h-4 w-4 text-error-500 flex-shrink-0" />
               )}
               {isValid === true && (
-                <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                <Check className="h-4 w-4 text-success-500 flex-shrink-0" />
               )}
               {isValid === null && (
-                <AlertCircle className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                <AlertCircle className="h-4 w-4 text-warning-500 flex-shrink-0" />
               )}
               <span className="">{value}</span>
             </div>
@@ -237,7 +237,7 @@ export const CopiableField = memo(
         </div>
 
         {isValid === false && (
-          <div className="text-xs text-red-500 pl-[20%]">
+          <div className="text-xs text-error-500 pl-[20%]">
             {label === "Selector"
               ? "Selector not found in HTML"
               : "Regex doesn't match any content"}
@@ -274,7 +274,7 @@ export const CopiableField = memo(
                   {extractedValue.length > 100 && (
                     <button
                       onClick={handleToggleExpanded}
-                      className="mt-1 text-xs bg-blue-50 text-blue-600 hover:text-blue-800 hover:bg-blue-100 font-medium px-2 py-1 rounded-md transition-colors shadow-sm border border-blue-200"
+                      className="mt-1 text-xs bg-blue-50 text-blue-600 hover:text-blue-800 hover:bg-blue-100 font-medium px-2 py-1 rounded transition-colors shadow-sm border border-blue-200"
                     >
                       {extractedValueExpanded ? "Show less" : "Show more"}
                     </button>

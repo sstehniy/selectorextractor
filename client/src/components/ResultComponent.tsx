@@ -72,7 +72,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
   return (
     <Card className="w-full border-2" style={{ borderColor: mapModel.color }}>
       <div className="relative">
-        <CardHeader className="pb-6 sticky top-0 bg-white/10 backdrop-blur-md rounded-xl z-10">
+        <CardHeader className="pb-6 sticky top-0 bg-background/10 backdrop-blur-md rounded z-10">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div className="flex flex-col">
               <CardTitle className="text-primary">
@@ -84,7 +84,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
             </div>
             <Badge
               variant="secondary"
-              className="px-3 py-1.5 flex items-center gap-2 rounded-md border-2 text-primary text-sm font-medium"
+              className="px-3 py-1.5 flex items-center gap-2 rounded border-2 text-primary text-sm font-medium"
               style={{ borderColor: mapModel.color }}
             >
               {mapModel.icon}
@@ -112,7 +112,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                   </h3>
                   <Badge
                     variant="outline"
-                    className="border-primary text-primary rounded-sm"
+                    className="border-primary text-primary rounded"
                   >
                     {fieldType}
                   </Badge>
@@ -123,7 +123,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                   className="w-full space-y-2"
                   defaultValue={["result"]}
                 >
-                  <AccordionItem value="analysis" className="border rounded-lg">
+                  <AccordionItem value="analysis" className="border rounded">
                     <AccordionTrigger className="px-4 py-2 text-sm hover:no-underline [&[data-state=open]>div]:text-primary">
                       <div className="flex items-center gap-2">
                         <Microscope className="h-4 w-4" />
@@ -169,7 +169,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="result" className="border rounded-lg">
+                  <AccordionItem value="result" className="border rounded">
                     <AccordionTrigger className="px-4 py-2 text-sm hover:no-underline [&[data-state=open]>div]:text-primary">
                       <div className="flex items-center gap-2">
                         <Eye className="h-4 w-4" />
@@ -231,7 +231,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                               Extracted Image
                             </label>
                             {imageSrc ? (
-                              <div className="border rounded-lg overflow-hidden flex flex-col items-center">
+                              <div className="border rounded overflow-hidden flex flex-col items-center">
                                 <img
                                   src={imageSrc}
                                   alt={`Extracted image for ${field.field}`}
@@ -252,7 +252,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                                 </div>
                               </div>
                             ) : (
-                              <div className="border rounded-lg p-4 text-center text-muted-foreground text-sm">
+                              <div className="border rounded p-4 text-center text-muted-foreground text-sm">
                                 No image found with the current selector
                               </div>
                             )}
@@ -262,7 +262,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="raw-html" className="border rounded-lg">
+                  <AccordionItem value="raw-html" className="border rounded">
                     <AccordionTrigger className="px-4 py-2 text-sm hover:no-underline [&[data-state=open]>div]:text-primary">
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4" />
@@ -271,7 +271,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                     </AccordionTrigger>
                     <AccordionContent className="px-4 pb-3 pt-1">
                       <div className="text-sm">
-                        <pre className="bg-muted p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-words">
+                        <pre className="bg-muted p-2 rounded overflow-x-auto whitespace-pre-wrap break-words">
                           <code>
                             {getElementHtml(
                               field.selector,
