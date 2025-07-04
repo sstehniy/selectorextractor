@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, AlertCircle, Check } from "lucide-react";
 import { cx } from "class-variance-authority";
@@ -17,274 +17,290 @@ type CopiableFieldProps = {
   javaScriptFunction?: string;
 };
 
-export const CopiableField = ({
-  label,
-  value,
-  fieldId,
-  htmlInput,
-  validate = false,
-  extractMethod = "textContent",
-  regexUse = "extract",
-  regexMatchIndex = 0,
-  selector = "",
-  javaScriptFunction = "",
-}: CopiableFieldProps) => {
-  const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [isValid, setIsValid] = useState<boolean | null>(true);
-  const [extractedValue, setExtractedValue] = useState<string | null>(null);
-  const [extractedValueExpanded, setExtractedValueExpanded] =
-    useState<boolean>(false);
+export const CopiableField = memo(
+  ({
+    label,
+    value,
+    fieldId,
+    htmlInput,
+    validate = false,
+    extractMethod = "textContent",
+    regexUse = "extract",
+    regexMatchIndex = 0,
+    selector = "",
+    javaScriptFunction = "",
+  }: CopiableFieldProps) => {
+    const [copiedField, setCopiedField] = useState<string | null>(null);
+    const [isValid, setIsValid] = useState<boolean | null>(true);
+    const [extractedValue, setExtractedValue] = useState<string | null>(null);
+    const [extractedValueExpanded, setExtractedValueExpanded] =
+      useState<boolean>(false);
 
-  const handleToggleExpanded = () => {
-    setExtractedValueExpanded(!extractedValueExpanded);
-  };
-
-  useEffect(() => {
-    // Reset state if validation isn't active or required inputs are missing
-    if (!validate || !htmlInput) {
-      setIsValid(null);
-      setExtractedValue(null);
-      return;
-    }
-
-    // Centralized result setter to update state
-    const setValidationResult = (
-      validStatus: boolean | null,
-      val: string | null,
-    ) => {
-      setIsValid(validStatus);
-      setExtractedValue(val ? val.trim() : null);
+    const handleToggleExpanded = () => {
+      setExtractedValueExpanded(!extractedValueExpanded);
     };
 
-    // Helper to get content from a DOM element based on the extract method
-    const getContentFromElement = (
-      element: Element,
-      method: "textContent" | "innerHTML" | "innerText" | "javascript",
-    ): string => {
-      switch (method) {
-        case "innerHTML":
-          return element.innerHTML;
-        case "innerText":
-          // @ts-ignore
-          return element.innerText || "";
-        case "textContent":
-        default:
-          return element.textContent || "";
+    useEffect(() => {
+      // Reset state if validation isn't active or required inputs are missing
+      if (!validate || !htmlInput) {
+        setIsValid(true);
+        setExtractedValue(null);
+        return;
       }
-    };
 
-    const runValidation = () => {
-      try {
-        const doc = new DOMParser().parseFromString(htmlInput, "text/html");
+      // Centralized result setter to update state
+      const setValidationResult = (
+        validStatus: boolean | null,
+        val: string | null,
+      ) => {
+        setIsValid(validStatus);
+        setExtractedValue(val ? val.trim() : null);
+      };
 
-        // --- Selector Validation ---
-        if (label === "Selector") {
-          if (!value) return setValidationResult(false, null);
-          try {
-            const elements = doc.querySelectorAll(value);
-            if (elements.length > 0) {
-              const content = getContentFromElement(elements[0], extractMethod);
-              setValidationResult(true, content);
+      // Helper to get content from a DOM element based on the extract method
+      const getContentFromElement = (
+        element: Element,
+        method: "textContent" | "innerHTML" | "innerText" | "javascript",
+      ): string => {
+        switch (method) {
+          case "innerHTML":
+            return element.innerHTML;
+          case "innerText":
+            // @ts-ignore
+            return element.innerText || "";
+          case "textContent":
+          default:
+            return element.textContent || "";
+        }
+      };
+
+      const runValidation = () => {
+        try {
+          const doc = new DOMParser().parseFromString(htmlInput, "text/html");
+
+          // --- Selector Validation ---
+          if (label === "Selector") {
+            if (!value) return setValidationResult(false, null);
+            try {
+              const elements = doc.querySelectorAll(value);
+              if (elements.length > 0) {
+                const content = getContentFromElement(
+                  elements[0],
+                  extractMethod,
+                );
+                setValidationResult(true, content);
+              } else {
+                setValidationResult(false, null);
+              }
+            } catch {
+              console.warn("Unsupported selector for validation:", value);
+              setValidationResult(null, null);
+            }
+            return;
+          }
+
+          // --- Regex Validation ---
+          if (label === "Regex") {
+            if (!value) return setValidationResult(true, null); // Empty regex is valid
+            if (!selector) return setValidationResult(false, null);
+
+            let selectorElement;
+            try {
+              selectorElement = doc.querySelector(selector);
+            } catch {
+              console.warn(
+                "Unsupported selector for regex validation:",
+                selector,
+              );
+              return setValidationResult(null, null);
+            }
+
+            if (selectorElement) {
+              let content = getContentFromElement(
+                selectorElement,
+                extractMethod,
+              );
+              content = content
+                .trim()
+                .replace(/\s+/g, " ")
+                .replace(/&nbsp;/g, " ");
+              const regex = new RegExp(value);
+
+              if (regexUse === "extract") {
+                const match = content.match(regex);
+                if (match) {
+                  const extractedMatch = match[regexMatchIndex] || match[0];
+                  setValidationResult(true, extractedMatch);
+                } else {
+                  setValidationResult(false, null);
+                }
+              } else {
+                // "omit"
+                const cleanContent = content.replace(regex, "").trim();
+                if (cleanContent !== content) {
+                  setValidationResult(true, cleanContent);
+                } else {
+                  setValidationResult(false, null);
+                }
+              }
             } else {
               setValidationResult(false, null);
             }
-          } catch {
-            console.warn("Unsupported selector for validation:", value);
-            setValidationResult(null, null);
+            return;
           }
-          return;
-        }
 
-        // --- Regex Validation ---
-        if (label === "Regex") {
-          if (!value) return setValidationResult(true, null); // Empty regex is valid
-          if (!selector) return setValidationResult(false, null);
-
-          let selectorElement;
-          try {
-            selectorElement = doc.querySelector(selector);
-          } catch {
-            console.warn(
-              "Unsupported selector for regex validation:",
-              selector,
+          // --- JavaScript Validation ---
+          if (label === "JavaScript") {
+            const funcMatch = value.match(
+              /function\s*\([^)]*\)\s*\{([\s\S]*)\}$/,
             );
-            return setValidationResult(null, null);
-          }
+            if (!funcMatch) throw new Error("Invalid function format");
 
-          if (selectorElement) {
-            let content = getContentFromElement(selectorElement, extractMethod);
-            content = content
-              .trim()
-              .replace(/\s+/g, " ")
-              .replace(/&nbsp;/g, " ");
-            const regex = new RegExp(value);
+            const funcBody = funcMatch[1];
+            const func = new Function("document", funcBody);
+            const result = func(doc);
 
-            if (regexUse === "extract") {
-              const match = content.match(regex);
-              if (match) {
-                const extractedMatch = match[regexMatchIndex] || match[0];
-                setValidationResult(true, extractedMatch);
-              } else {
-                setValidationResult(false, null);
-              }
+            if (result !== null && result !== undefined) {
+              setValidationResult(true, String(result));
             } else {
-              // "omit"
-              const cleanContent = content.replace(regex, "").trim();
-              if (cleanContent !== content) {
-                setValidationResult(true, cleanContent);
-              } else {
-                setValidationResult(false, null);
-              }
+              setValidationResult(false, null);
             }
-          } else {
-            setValidationResult(false, null);
+            return;
           }
-          return;
+        } catch (error) {
+          console.error("Error validating field:", value, error);
+          setValidationResult(false, null);
         }
+      };
 
-        // --- JavaScript Function Validation ---
-        if (label === "JavaScript Function") {
-          const funcMatch = value.match(
-            /function\s*\([^)]*\)\s*\{([\s\S]*)\}$/,
-          );
-          if (!funcMatch) throw new Error("Invalid function format");
+      runValidation();
+    }, [
+      value,
+      htmlInput,
+      label,
+      validate,
+      extractMethod,
+      regexUse,
+      regexMatchIndex,
+      selector,
+      javaScriptFunction, // Kept for dependency consistency
+    ]);
 
-          const funcBody = funcMatch[1];
-          const func = new Function("document", funcBody);
-          const result = func(doc);
-
-          if (result !== null && result !== undefined) {
-            setValidationResult(true, String(result));
-          } else {
-            setValidationResult(false, null);
-          }
-          return;
-        }
-      } catch (error) {
-        console.error("Error validating field:", value, error);
-        setValidationResult(false, null);
-      }
+    const copyToClipboard = (text: string, field: string) => {
+      navigator.clipboard.writeText(text).then(() => {
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 2000);
+      });
     };
 
-    runValidation();
-  }, [
-    value,
-    htmlInput,
-    label,
-    validate,
-    extractMethod,
-    regexUse,
-    regexMatchIndex,
-    selector,
-    javaScriptFunction, // Kept for dependency consistency
-  ]);
-
-  const copyToClipboard = (text: string, field: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedField(field);
-      setTimeout(() => setCopiedField(null), 2000);
-    });
-  };
-
-  return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-3 items-center relative group">
-        <span className="text-muted-foreground">{label}:</span>
-        <code
-          className={cx(
-            "col-span-2 bg-muted px-2 py-1 rounded-sm text-sm font-medium flex items-center justify-between relative border-2",
-            {
-              "border-red-300": isValid === false,
-              "border-green-300": isValid === true,
-              "border-yellow-300": isValid === null,
-              "border-gray-300":
-                typeof isValid !== "boolean" && isValid !== null,
-            },
-          )}
-        >
-          <div className="flex items-center gap-2 overflow-hidden">
-            {isValid === false && (
-              <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+    return (
+      <div className="space-y-2">
+        <div className="grid grid-cols-10 items-center relative group">
+          <span className="text-muted-foreground col-span-2">{label}:</span>
+          <code
+            className={cx(
+              "col-span-8 bg-muted px-2 py-1 rounded-sm text-sm font-medium flex items-center justify-between relative border-2",
+              {
+                "border-red-300": isValid === false,
+                "border-green-300": isValid === true,
+                "border-yellow-300": isValid === null,
+                "border-gray-300":
+                  typeof isValid !== "boolean" && isValid !== null,
+              },
             )}
-            {isValid === true && (
-              <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-            )}
-            {isValid === null && (
-              <AlertCircle className="h-4 w-4 text-yellow-500 flex-shrink-0" />
-            )}
-            <span className="">{value}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="opacity-100 transition-opacity p-0 h-6 w-6"
-              onClick={() => copyToClipboard(value, fieldId)}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-          </div>
-          {copiedField === fieldId && (
-            <span className="absolute right-1 top-1 text-xs bg-background px-2 py-1 rounded shadow">
-              Copied!
-            </span>
-          )}
-        </code>
-      </div>
-
-      {isValid === false && (
-        <div className="text-xs text-red-500 pl-[33.333%]">
-          {label === "Selector"
-            ? "Selector not found in HTML"
-            : label === "JavaScript Function"
-              ? "JavaScript function failed or returned null"
-              : "Regex doesn't match any content"}
-        </div>
-      )}
-
-      {isValid === null && (
-        <div className="text-xs text-yellow-600 pl-[33.333%]">
-          {label === "Selector"
-            ? "Cannot validate selector (uses unsupported pseudo-classes)"
-            : label === "JavaScript Function"
-              ? "Cannot validate JavaScript function"
-              : label === "Regex"
-                ? "Cannot validate regex (selector uses unsupported pseudo-classes)"
-                : ""}
-        </div>
-      )}
-
-      {isValid === true && extractedValue && (
-        <div className="pl-[33.333%] text-sm">
-          <div className="bg-green-50 border border-green-200 rounded p-2">
-            <div className="text-xs text-green-700 mb-1">Extracted Value:</div>
-            <div className="flex flex-col items-end">
-              <div
-                className={cx("text-green-900 break-words w-full", {
-                  "line-clamp-5":
-                    !extractedValueExpanded && extractedValue.length > 100,
-                  "max-h-none": extractedValueExpanded,
-                })}
+          >
+            <div className="flex items-center gap-2 overflow-hidden">
+              {isValid === false && (
+                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+              )}
+              {isValid === true && (
+                <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+              )}
+              {isValid === null && (
+                <AlertCircle className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+              )}
+              {label === "JavaScript" ? (
+                <pre className="overflow-x-auto">{value}</pre>
+              ) : (
+                <span className="">{value}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="opacity-100 transition-opacity p-0 h-6 w-6"
+                onClick={() => copyToClipboard(value, fieldId)}
               >
-                {extractedValue}
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            {copiedField === fieldId && (
+              <span className="absolute right-1 top-1 text-xs bg-background px-2 py-1 rounded shadow">
+                Copied!
+              </span>
+            )}
+          </code>
+        </div>
+
+        {isValid === false && (
+          <div className="text-xs text-red-500 pl-[20%]">
+            {label === "Selector"
+              ? "Selector not found in HTML"
+              : label === "JavaScript"
+                ? "JavaScript failed or returned null"
+                : "Regex doesn't match any content"}
+          </div>
+        )}
+
+        {isValid === null && (
+          <div className="text-xs text-yellow-600 pl-[20%]">
+            {label === "Selector"
+              ? "Cannot validate selector (uses unsupported pseudo-classes)"
+              : label === "JavaScript"
+                ? "Cannot validate JavaScript"
+                : label === "Regex"
+                  ? "Cannot validate regex (selector uses unsupported pseudo-classes)"
+                  : ""}
+          </div>
+        )}
+
+        {isValid === true && extractedValue && (
+          <div className="pl-[20%] text-sm">
+            <div className="bg-green-50 border border-green-200 rounded p-2">
+              <div className="text-xs text-green-700 mb-1">
+                Extracted Value:
               </div>
-              <div>
-                {extractedValue.length > 100 && (
-                  <button
-                    onClick={handleToggleExpanded}
-                    className="mt-1 text-xs bg-blue-50 text-blue-600 hover:text-blue-800 hover:bg-blue-100 font-medium px-2 py-1 rounded-md transition-colors shadow-sm border border-blue-200"
-                  >
-                    {extractedValueExpanded ? "Show less" : "Show more"}
-                  </button>
-                )}
+              <div className="flex flex-col items-end">
+                <div
+                  className={cx("text-green-900 break-words w-full", {
+                    "line-clamp-5":
+                      !extractedValueExpanded && extractedValue.length > 100,
+                    "max-h-none": extractedValueExpanded,
+                  })}
+                >
+                  {extractedValue}
+                </div>
+                <div>
+                  {extractedValue.length > 100 && (
+                    <button
+                      onClick={handleToggleExpanded}
+                      className="mt-1 text-xs bg-blue-50 text-blue-600 hover:text-blue-800 hover:bg-blue-100 font-medium px-2 py-1 rounded-md transition-colors shadow-sm border border-blue-200"
+                    >
+                      {extractedValueExpanded ? "Show less" : "Show more"}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-};
+        )}
+      </div>
+    );
+  },
+);
+
+CopiableField.displayName = "CopiableField";
 
 type CopiableSelectorProps = {
   selector: string;

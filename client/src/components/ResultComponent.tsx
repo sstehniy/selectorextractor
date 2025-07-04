@@ -17,18 +17,14 @@ import {
   FileText,
 } from "lucide-react";
 import { CopiableField, CopiableSelector } from "./CopiableFieldComponents";
-import { VersionedExtractionResult } from "@/App";
+import { VersionedExtractionResult } from "@/types";
 import { Option, selectOptions } from "@/modelSelectConfig";
 
-type Props = {
+type ResultComponentProps = {
   versionedResult: VersionedExtractionResult;
-  fields: Array<{
-    name: string;
-    type: string;
-  }>;
 };
 
-export default function Component({ versionedResult, fields }: Props) {
+export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
   const model = versionedResult.result.model;
   const mapModel = selectOptions.find((m) => m.value === model) as Option;
 
@@ -43,6 +39,25 @@ export default function Component({ versionedResult, fields }: Props) {
       return element ? element.outerHTML : "No HTML content found";
     } catch {
       return `Unsupported selector: ${selector}`;
+    }
+  };
+
+  const extractImageSrc = (
+    selector: string,
+    htmlInput: string,
+  ): string | null => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlInput, "text/html");
+    if (!selector) return null;
+
+    try {
+      const element = doc.querySelector(selector) as HTMLImageElement;
+      if (element && element.tagName.toLowerCase() === "img") {
+        return element.src || element.getAttribute("src");
+      }
+      return null;
+    } catch {
+      return null;
     }
   };
 
@@ -72,157 +87,195 @@ export default function Component({ versionedResult, fields }: Props) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {versionedResult.result.fields.map((field, index) => (
-          <div key={index} className="space-y-2">
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-primary">
-                {field.field}
-              </h3>
-              <Badge
-                variant="outline"
-                className="border-primary text-primary rounded-sm"
+        {versionedResult.result.fields.map((field, index) => {
+          const fieldType = field.type?.toUpperCase() || "TEXT";
+          const imageSrc =
+            fieldType === "IMAGE"
+              ? extractImageSrc(field.selector, versionedResult.htmlInput)
+              : null;
+          return (
+            <div key={index} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-semibold text-primary">
+                  {field.field}
+                </h3>
+                <Badge
+                  variant="outline"
+                  className="border-primary text-primary rounded-sm"
+                >
+                  {fieldType}
+                </Badge>
+              </div>
+
+              <Accordion
+                type="multiple"
+                className="w-full space-y-2"
+                defaultValue={["result"]}
               >
-                {(
-                  fields.find((f) => f.name === field.field)?.type || "text"
-                ).toUpperCase()}
-              </Badge>
+                <AccordionItem value="analysis" className="border rounded-lg">
+                  <AccordionTrigger className="px-4 py-2 text-sm hover:no-underline [&[data-state=open]>div]:text-primary">
+                    <div className="flex items-center gap-2">
+                      <Microscope className="h-4 w-4" />
+                      Field Analysis
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-3 pt-1">
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <div className="flex items-center gap-2 font-medium mb-1">
+                          <List className="h-4 w-4" />
+                          Observations
+                        </div>
+                        <ul className="list-disc pl-4 space-y-0.5 text-muted-foreground">
+                          {field.fieldAnalysis?.observations?.map((obs, i) => (
+                            <li key={i}>{obs}</li>
+                          )) || <li>No observations</li>}
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 font-medium mb-1">
+                          <Code className="h-4 w-4" />
+                          Selectors Considered
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-2">
+                          {field.fieldAnalysis.selectorsConsidered?.map(
+                            (selector, i) => (
+                              <CopiableSelector
+                                key={i}
+                                selector={selector}
+                                fieldName={field.field}
+                                index={i}
+                              />
+                            ),
+                          ) || (
+                            <li className="text-muted-foreground">
+                              No additional selectors considered
+                            </li>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="result" className="border rounded-lg">
+                  <AccordionTrigger className="px-4 py-2 text-sm hover:no-underline [&[data-state=open]>div]:text-primary">
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      Result
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-3 pt-1">
+                    <div className="grid gap-2 text-sm">
+                      {field.selector && (
+                        <CopiableField
+                          label="Selector"
+                          value={field.selector}
+                          fieldId={`selector-${field.field}`}
+                          htmlInput={versionedResult.htmlInput}
+                          validate={true}
+                          extractMethod={field.extractMethod}
+                          selector={field.selector}
+                        />
+                      )}
+
+                      {field.attributeToGet && (
+                        <CopiableField
+                          label="Attribute"
+                          value={field.attributeToGet}
+                          fieldId={`attribute-${field.field}`}
+                          htmlInput={versionedResult.htmlInput}
+                          validate={false}
+                          selector={field.selector}
+                        />
+                      )}
+
+                      {field.regex && (
+                        <CopiableField
+                          label="Regex"
+                          value={field.regex}
+                          fieldId={`regex-${field.field}`}
+                          htmlInput={versionedResult.htmlInput}
+                          validate={true}
+                          regexUse={field.regexUse}
+                          regexMatchIndex={field.regexMatchIndexToUse}
+                          selector={field.selector}
+                        />
+                      )}
+
+                      {field.javaScriptFunction && (
+                        <CopiableField
+                          label="JavaScript"
+                          value={field.javaScriptFunction}
+                          fieldId={`js-function-${field.field}`}
+                          htmlInput={versionedResult.htmlInput}
+                          validate={true}
+                          extractMethod="javascript"
+                          selector={field.selector}
+                          javaScriptFunction={field.javaScriptFunction}
+                        />
+                      )}
+
+                      {fieldType === "IMAGE" && field.selector && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-muted-foreground">
+                            Extracted Image
+                          </label>
+                          {imageSrc ? (
+                            <div className="border rounded-lg overflow-hidden flex flex-col items-center">
+                              <img
+                                src={imageSrc}
+                                alt={`Extracted image for ${field.field}`}
+                                className="max-w-full h-auto max-h-64 object-contain"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display =
+                                    "none";
+                                  (
+                                    e.target as HTMLImageElement
+                                  ).nextElementSibling?.classList.remove(
+                                    "hidden",
+                                  );
+                                }}
+                              />
+                              <div className="hidden p-4 text-center text-muted-foreground text-sm">
+                                Failed to load image: {imageSrc}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="border rounded-lg p-4 text-center text-muted-foreground text-sm">
+                              No image found with the current selector
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="raw-html" className="border rounded-lg">
+                  <AccordionTrigger className="px-4 py-2 text-sm hover:no-underline [&[data-state=open]>div]:text-primary">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Raw HTML
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-3 pt-1">
+                    <div className="text-sm">
+                      <pre className="bg-muted p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-words">
+                        <code>
+                          {getElementHtml(
+                            field.selector,
+                            versionedResult.htmlInput,
+                          )}
+                        </code>
+                      </pre>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
-
-            <Accordion
-              type="multiple"
-              className="w-full space-y-2"
-              defaultValue={["result"]}
-            >
-              <AccordionItem value="analysis" className="border rounded-lg">
-                <AccordionTrigger className="px-4 py-2 text-sm hover:no-underline [&[data-state=open]>div]:text-primary">
-                  <div className="flex items-center gap-2">
-                    <Microscope className="h-4 w-4" />
-                    Field Analysis
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-3 pt-1">
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <div className="flex items-center gap-2 font-medium mb-1">
-                        <List className="h-4 w-4" />
-                        Observations
-                      </div>
-                      <ul className="list-disc pl-4 space-y-0.5 text-muted-foreground">
-                        {field.fieldAnalysis?.observations?.map((obs, i) => (
-                          <li key={i}>{obs}</li>
-                        )) || <li>No observations</li>}
-                      </ul>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 font-medium mb-1">
-                        <Code className="h-4 w-4" />
-                        Selectors Considered
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-2">
-                        {field.fieldAnalysis.selectorsConsidered?.map(
-                          (selector, i) => (
-                            <CopiableSelector
-                              key={i}
-                              selector={selector}
-                              fieldName={field.field}
-                              index={i}
-                            />
-                          ),
-                        ) || (
-                          <li className="text-muted-foreground">
-                            No additional selectors considered
-                          </li>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="result" className="border rounded-lg">
-                <AccordionTrigger className="px-4 py-2 text-sm hover:no-underline [&[data-state=open]>div]:text-primary">
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    Result
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-3 pt-1">
-                  <div className="grid gap-2 text-sm">
-                    {field.selector && (
-                      <CopiableField
-                        label="Selector"
-                        value={field.selector}
-                        fieldId={`selector-${field.field}`}
-                        htmlInput={versionedResult.htmlInput}
-                        validate={true}
-                        extractMethod={field.extractMethod}
-                        selector={field.selector}
-                      />
-                    )}
-
-                    {field.attributeToGet && (
-                      <CopiableField
-                        label="Attribute"
-                        value={field.attributeToGet}
-                        fieldId={`attribute-${field.field}`}
-                        htmlInput={versionedResult.htmlInput}
-                        validate={false}
-                        selector={field.selector}
-                      />
-                    )}
-
-                    {field.regex && (
-                      <CopiableField
-                        label="Regex"
-                        value={field.regex}
-                        fieldId={`regex-${field.field}`}
-                        htmlInput={versionedResult.htmlInput}
-                        validate={true}
-                        regexUse={field.regexUse}
-                        regexMatchIndex={field.regexMatchIndexToUse}
-                        selector={field.selector}
-                      />
-                    )}
-
-                    {field.javaScriptFunction && (
-                      <CopiableField
-                        label="JavaScript Function"
-                        value={field.javaScriptFunction}
-                        fieldId={`js-function-${field.field}`}
-                        htmlInput={versionedResult.htmlInput}
-                        validate={true}
-                        extractMethod="javascript"
-                        selector={field.selector}
-                        javaScriptFunction={field.javaScriptFunction}
-                      />
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="raw-html" className="border rounded-lg">
-                <AccordionTrigger className="px-4 py-2 text-sm hover:no-underline [&[data-state=open]>div]:text-primary">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Raw HTML
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-3 pt-1">
-                  <div className="text-sm">
-                    <pre className="bg-muted p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-words">
-                      <code>
-                        {getElementHtml(
-                          field.selector,
-                          versionedResult.htmlInput,
-                        )}
-                      </code>
-                    </pre>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        ))}
+          );
+        })}
 
         <div className="border-t pt-3 mt-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
@@ -258,4 +311,4 @@ export default function Component({ versionedResult, fields }: Props) {
       </CardContent>
     </Card>
   );
-}
+};

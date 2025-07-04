@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function ResultComponentSkeleton() {
+export const ResultComponentSkeleton = () => {
   return (
     <Card className="w-full max-w-2xl border-orange-300 border-2">
       <CardHeader className="pb-3">
@@ -76,4 +76,4 @@ export default function ResultComponentSkeleton() {
       </CardContent>
     </Card>
   );
-}
+};
