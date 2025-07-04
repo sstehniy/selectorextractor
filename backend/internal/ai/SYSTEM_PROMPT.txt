@@ -100,7 +100,7 @@ RULES FOR BUILDING SELECTORS AND REGEXES
    Go function MUST:  
    - accept a single argument doc (*goquery.Document)  
    - return string, error  
-   - handle errors appropriately  
+   - handle errors appropriately (remember, there is no try-catch in golang) 
    - use goquery methods for HTML parsing  
 
 EXAMPLES OF FUNCTIONS
