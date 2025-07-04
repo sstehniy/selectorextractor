@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { ResultComponentSkeleton } from "./components/ResultComponentSkeleton";
-import {
+import type {
   Attachment,
   ExtractionResult,
   Field,
   FieldType,
   VersionedExtractionResult,
 } from "./types";
-import { Option } from "./modelSelectConfig";
+import type { Option } from "./modelSelectConfig";
 import { Form } from "./components/Form";
 import { ResultsList } from "./components/ResultsList";
 import { motion } from "framer-motion";
@@ -167,44 +167,57 @@ export const App = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col items-center pt-[5%] bg-gradient-to-b from-blue-50 to-purple-100 p-4 w-full">
+    <div className="h-screen bg-gradient-to-b from-blue-50 to-purple-100 flex flex-col lg:flex-row overflow-hidden">
+      {/* Sidebar */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-2xl"
+        className="relative pb-10 w-full lg:w-[28rem] xl:w-[32rem] bg-white/80 backdrop-blur-sm border-b lg:border-b-0 lg:border-r border-gray-200 p-4 lg:p-6 overflow-y-auto flex-shrink-0"
       >
-        <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center">
-          AI Scrape Assistant
-        </h1>
+        <div className="sticky top-0 pb-4">
+          <h1 className="text-2xl lg:text-3xl font-bold text-center lg:text-left">
+            AI Scrape Assistant
+          </h1>
+        </div>
+
         <Form
           onSubmit={handleSubmit}
           errors={errors}
           isLoading={extractMutation.isPending}
         />
-        <div className="mt-8">
-          <h2 className="text-2xl font-medium  mb-4">Extraction Results</h2>
-
-          {extractMutation.isPending && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mb-4"
-            >
-              <ResultComponentSkeleton />
-            </motion.div>
-          )}
-
-          <ResultsList
-            versionedExtractionResults={sortedVersionedExtractionResults || []}
-          />
-        </div>
+        {/* Fixed Footer */}
+        <footer className="absolute bottom-1 w-full left-1/2 -translate-x-1/2 flex-shrink-0 mt-4 text-center text-sm text-gray-600">
+          <p className="nowrap">
+            © 2024 AI Scrape Assistant. All rights reserved.
+          </p>
+        </footer>
       </motion.div>
 
-      <footer className="mt-8 text-center  text-sm">
-        <p>© 2024 AI Scrape Assistant. All rights reserved.</p>
-      </footer>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className=" flex-1 flex flex-col p-4 lg:p-6 py-0 lg:py-0 max-w-3xl mx-auto w-full min-h-0">
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="h-6"></div>
+            {extractMutation.isPending && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mb-4"
+              >
+                <ResultComponentSkeleton />
+              </motion.div>
+            )}
+
+            <ResultsList
+              versionedExtractionResults={
+                sortedVersionedExtractionResults || []
+              }
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

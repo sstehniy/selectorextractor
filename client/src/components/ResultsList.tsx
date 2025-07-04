@@ -1,4 +1,4 @@
-import { VersionedExtractionResult } from "@/types";
+import type { VersionedExtractionResult } from "@/types";
 import { ResultComponent } from "./ResultComponent";
 import { memo } from "react";
 import { motion } from "framer-motion";
@@ -23,7 +23,7 @@ export const ResultsList = memo(
       return null;
     }
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 pb-4">
         {versionedExtractionResults.map((versionedResult) => (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const ResultComponentSkeleton = () => {
   return (
-    <Card className="w-full max-w-2xl border-orange-300 border-2">
+    <Card className="w-full border-orange-300 border-2">
       <CardHeader className="pb-3">
         <div className="flex justify-between">
           <div>

@@ -147,13 +147,28 @@ export const CodeBlockComponent = ({
               ))}
             </CodeBlockSelectContent>
           </CodeBlockSelect>
-          <CodeBlockCopyButton />
         </CodeBlockHeader>
         {code.map((item) => (
-          <CodeBlockBody key={item.language} value={item.language || ""}>
-            <CodeBlockContent language={item.language}>
+          <CodeBlockBody
+            key={item.language}
+            value={item.language || ""}
+            className="relative"
+          >
+            <CodeBlockContent
+              language={item.language}
+              themes={{
+                light: "github-light",
+                dark: "github-dark",
+              }}
+            >
               {item.code}
             </CodeBlockContent>
+            <CodeBlockCopyButton
+              className="absolute top-2 right-2"
+              onCopy={() => {
+                navigator.clipboard.writeText(item.code);
+              }}
+            />
           </CodeBlockBody>
         ))}
       </CodeBlock>

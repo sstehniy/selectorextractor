@@ -1,6 +1,6 @@
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
-import { Copy, Trash2, X } from "lucide-react";
+import { Copy, Plus, Trash2, X } from "lucide-react";
 import { PriceIndicator } from "./PriceIndicator";
 import {
   Select,
@@ -9,10 +9,11 @@ import {
   SelectContent,
   SelectItem,
 } from "./ui/select";
-import { selectOptions, Option } from "@/modelSelectConfig";
+import { selectOptions } from "@/modelSelectConfig";
+import type { Option } from "@/modelSelectConfig";
 import { memo, useMemo, useState } from "react";
 import { Input } from "./ui/input";
-import { Field, Attachment, FieldType } from "@/types";
+import type { Field, Attachment, FieldType } from "@/types";
 
 const FieldItem = memo(
   ({
@@ -257,11 +258,12 @@ export const Form = ({
           onClick={addField}
           className="mt-2 hover:bg-blue-50 transition-colors duration-200"
         >
+          <Plus className="h-4 w-4" />
           Add Field
         </Button>
       </div>
 
-      <div className="flex flex-col space-y-2 w-full max-w-md mx-auto">
+      <div className="flex flex-col space-y-2 w-full max-w-md lg:max-w-full mx-auto">
         <div className="relative">
           <Button
             type="submit"
