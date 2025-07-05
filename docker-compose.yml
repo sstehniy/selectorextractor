@@ -1,35 +1,35 @@
 services:
-  backend:
+  server:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "1323:1323"
     env_file:
       - ./backend/.env
     volumes:
       - ./backend/logs:/app/logs
     networks:
       - app-network
-    develop:
-      watch:
-        - action: rebuild
-          path: ./backend/internal
+    # develop:
+    #   watch:
+    #     - action: rebuild
+    #       path: ./backend/internal
 
-  frontend:
+  client:
     build:
       context: ./client
       dockerfile: Dockerfile
+    environment:
+      - API_URL=http://server:1323/api/v1
     ports:
-      - "1881:1881"
+      - "3000:3000"
     depends_on:
-      - backend
+      - server
     networks:
       - app-network
-    develop:
-      watch:
-        - action: rebuild
-          path: ./client
+    # develop:
+    #   watch:
+    #     - action: rebuild
+    #       path: ./client
 
 
 networks:
