@@ -9,6 +9,11 @@ services:
       - ./backend/logs:/app/logs
     networks:
       - app-network
+    cpus: 2
+    mem_limit: 1g
+    mem_reservation: 512m
+    memswap_limit: 1g
+    restart: unless-stopped
     # develop:
     #   watch:
     #     - action: rebuild
@@ -19,13 +24,17 @@ services:
       context: ./client
       dockerfile: Dockerfile
     environment:
-      - API_URL=http://server:1323/api/v1
+      - API_URL=${API_URL:-http://localhost:1323/api/v1}
     ports:
       - "3000:3000"
     depends_on:
       - server
     networks:
       - app-network
+    cpus: 1
+    mem_limit: 512m
+    mem_reservation: 256m
+    restart: unless-stopped
     # develop:
     #   watch:
     #     - action: rebuild
