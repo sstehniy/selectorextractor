@@ -42,7 +42,6 @@ var MODEL_LIST = []string{
 	"google/gemini-2.5-flash-preview-05-20",
 	"google/gemini-2.5-flash-lite-preview-06-17",
 	"google/gemini-2.5-pro",
-	"openrouter/cypher-alpha:free",
 }
 
 type ModelPrice struct {
@@ -70,10 +69,6 @@ var MODEL_PRICE_MAP = map[string]ModelPrice{
 	"google/gemini-2.5-pro": {
 		InputTokens:  1.25,
 		OutputTokens: 10,
-	},
-	"openrouter/cypher-alpha:free": {
-		InputTokens:  0,
-		OutputTokens: 0,
 	},
 }
 

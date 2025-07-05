@@ -1,4 +1,4 @@
-const iconMap: Record<string, JSX.Element> = {
+const iconMap: Record<string, React.JSX.Element> = {
   xai: (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -65,7 +65,7 @@ export enum PriceIndicator {
 type NonDefaultOption = {
   label: string;
   value: string;
-  icon: JSX.Element;
+  icon: React.JSX.Element;
   priceIndicator: PriceIndicator;
   color: string;
   isDefault: false;
@@ -74,7 +74,7 @@ type NonDefaultOption = {
 type DefaultOption = {
   label: string;
   value: string;
-  icon: JSX.Element;
+  icon: React.JSX.Element;
   priceIndicator: PriceIndicator;
   color: string;
   isDefault: true;
