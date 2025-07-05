@@ -10,7 +10,7 @@ import {
   SelectItem,
 } from "./ui/select";
 import { selectOptions, Option } from "@/lib/modelSelectConfig";
-import { memo, useCallback, useMemo, useReducer } from "react";
+import { memo, useCallback, useEffect, useMemo, useReducer } from "react";
 import { Input } from "./ui/input";
 import type { Field, Attachment, FieldType } from "@/types";
 
@@ -20,6 +20,7 @@ type FormState = {
   attachments: Attachment[];
   model: Option;
   fields: Field[];
+  apiKey: string;
 };
 
 type FormAction =
@@ -54,6 +55,10 @@ type FormAction =
   | {
       type: "UPDATE_COPIED_ATTACHMENT";
       payload: string | null;
+    }
+  | {
+      type: "UPDATE_API_KEY";
+      payload: string;
     };
 
 const formReducer = (state: FormState, action: FormAction) => {
@@ -83,6 +88,9 @@ const formReducer = (state: FormState, action: FormAction) => {
       };
     case "UPDATE_COPIED_ATTACHMENT":
       return { ...state, copiedAttachment: action.payload };
+    case "UPDATE_API_KEY":
+      localStorage.setItem("scrapyai-apiKey", action.payload);
+      return { ...state, apiKey: action.payload };
     default:
       return state;
   }
@@ -99,6 +107,7 @@ export const Form = ({
     attachments: Attachment[],
     fields: Field[],
     model: Option,
+    apiKey: string,
   ) => void;
   errors: { [key: string]: string };
   isLoading: boolean;
@@ -116,7 +125,15 @@ export const Form = ({
       },
     ],
     copiedAttachment: null,
+    apiKey: "",
   });
+
+  useEffect(() => {
+    const apiKey = localStorage.getItem("scrapyai-apiKey");
+    if (apiKey) {
+      dispatch({ type: "UPDATE_API_KEY", payload: apiKey });
+    }
+  }, []);
 
   const handleHtmlInputChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -176,12 +193,14 @@ export const Form = ({
       type: values[`${field.id}-type`] as FieldType,
       additionalInfo: values[`${field.id}-additionalInfo`] as string,
     }));
+    const apiKey = values["api-key"] as string;
     onSubmit(
       e,
       state.htmlInput,
       state.attachments,
       enrichedFields,
       state.model,
+      apiKey,
     );
   };
 
@@ -195,6 +214,19 @@ export const Form = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
+        <label htmlFor="api-key" className="block text-sm font-medium">
+          API Key
+        </label>
+        <Input
+          id="api-key"
+          name="api-key"
+          value={state.apiKey}
+          onChange={(e) =>
+            dispatch({ type: "UPDATE_API_KEY", payload: e.target.value })
+          }
+          placeholder="Enter your API key"
+          className="bg-background rounded shadow-sm"
+        />
         <label htmlFor="html-input" className="block text-sm font-medium">
           HTML Input
         </label>

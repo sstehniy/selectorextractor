@@ -69,9 +69,9 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
   };
 
   return (
-    <Card className="w-full border-2" style={{ borderColor: mapModel.color }}>
+    <Card className="w-full border-2 border-gray-500">
       <div className="relative">
-        <CardHeader className="pb-6 sticky top-0 bg-background/10 backdrop-blur-md rounded z-10">
+        <CardHeader className="pb-6 sticky top-0 backdrop-blur-md z-10 mt-2">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div className="flex flex-col">
               <CardTitle className="text-primary">
@@ -106,12 +106,12 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
             return (
               <div key={index} className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-primary">
+                  <h3 className="text-lg font-semibold text-primary">
                     {field.field}
                   </h3>
                   <Badge
                     variant="outline"
-                    className="border-primary text-primary rounded"
+                    className="border-2 border-primary text-primary rounded-md font-bold px-3 py-1 shadow-sm bg-primary/5 hover:bg-primary/10 transition-colors"
                   >
                     {fieldType}
                   </Badge>
@@ -176,7 +176,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="px-4 pb-3 pt-1">
-                      <div className="grid gap-2 text-sm max-w-full">
+                      <div className="grid gap-6 text-sm max-w-full">
                         {field.selector && (
                           <CopiableField
                             label="Selector"
@@ -231,6 +231,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                             </label>
                             {imageSrc ? (
                               <div className="border rounded overflow-hidden flex flex-col items-center">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={imageSrc}
                                   alt={`Extracted image for ${field.field}`}
@@ -288,7 +289,9 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
         </CardContent>
       </div>
       <CardFooter className="px-0">
-        <div className="grid grid-cols-3 gap-4 text-sm w-full justify-items-stretch border-t border-gray-200 pt-6 px-5 md:px-10">
+        <div
+          className={`grid grid-cols-3 gap-4 border-t-2 border-gray-500 text-sm w-full justify-items-stretch pt-6 px-5 md:px-10`}
+        >
           <div>
             <p className="text-muted-foreground flex items-center gap-1">
               <DollarSign className="h-3 w-3" />

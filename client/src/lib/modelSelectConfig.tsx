@@ -92,7 +92,7 @@ export const selectOptions: SelectOptionsArray = [
     value: "x-ai/grok-3-mini",
     icon: iconMap.xai,
     priceIndicator: PriceIndicator.LOW,
-    color: "#171717",
+    color: "#404040",
     isDefault: true,
   },
   {

@@ -37,9 +37,10 @@ const useExtractMutation = () => {
       attachments: Attachment[];
       htmlInput: string;
       fields: Field[];
+      apiKey: string;
     }
   >({
-    mutationFn: extract,
+    mutationFn: (vars) => extract(vars, vars.apiKey),
     onSuccess: (data, vars) => {
       queryClient.setQueryData<VersionedExtractionResult[]>(
         ["extractionResults"],
@@ -87,6 +88,7 @@ export function AppClient() {
     attachments: Attachment[],
     htmlInput: string,
     fields: Field[],
+    apiKey: string,
   ) => {
     if (
       extractMutation.isPending ||
@@ -101,6 +103,7 @@ export function AppClient() {
       attachments: attachments,
       htmlInput: htmlInput,
       fields: fields,
+      apiKey,
     });
   };
 
@@ -127,6 +130,7 @@ export function AppClient() {
     attachments: Attachment[],
     fields: Field[],
     model: Option,
+    apiKey: string,
   ) => {
     e.preventDefault();
     if (!validateForm(htmlInput, fields)) return;
@@ -142,6 +146,7 @@ export function AppClient() {
       attachments,
       htmlInput,
       fields,
+      apiKey,
     );
   };
 
@@ -168,7 +173,7 @@ export function AppClient() {
           isLoading={extractMutation.isPending}
         />
         {/* Fixed Footer */}
-        <footer className="absolute bottom-1 w-full left-1/2 -translate-x-1/2 flex-shrink-0 mt-4 text-center text-sm text-subtext-color dark:text-neutral-400">
+        <footer className="absolute bottom-4 w-full left-1/2 -translate-x-1/2 flex-shrink-0 mt-4 text-center text-sm text-subtext-color dark:text-neutral-400">
           <p className="nowrap">
             © 2025 AI Scrape Assistant. All rights reserved.
           </p>
@@ -177,7 +182,7 @@ export function AppClient() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden dark:bg-brand-primary bg-neutral-100 container max-w-full overflow-y-auto min-h-0">
-        <div className=" flex-1 flex flex-col p-4 lg:p-6 py-0 lg:py-0 mx-auto w-full min-h-0">
+        <div className="flex-1 flex flex-col p-4 lg:p-6 py-0 lg:py-0 mx-auto w-full min-h-0 max-w-3xl">
           <div className="flex-1 ">
             <div className="h-6"></div>
             {extractMutation.isPending && (

@@ -23,7 +23,7 @@ export const ResultsList = memo(
       return null;
     }
     return (
-      <div className="space-y-4 pb-4">
+      <div className="space-y-10 pb-4">
         {versionedExtractionResults.map((versionedResult) => (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

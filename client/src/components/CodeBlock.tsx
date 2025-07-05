@@ -186,12 +186,12 @@ export const CodeBlockComponent = ({
 
       {isValid === true && extractedValue && (
         <div className="text-sm">
-          <div className="bg-green-50 border border-green-200 rounded p-2">
-            <div className="text-xs text-green-700 mb-1">Extracted Value:</div>
+          <div className="bg-green-100 border border-green-200 rounded p-2">
+            <div className="text-green-700 mb-1">Extracted Value:</div>
             <div className="flex flex-col items-end">
               <div
                 className={cn(
-                  "text-green-900 break-all overflow-hidden w-full min-w-0",
+                  "text-green-900 break-all overflow-hidden w-full min-w-0 font-mono font-bold",
                   {
                     "line-clamp-5":
                       !extractedValueExpanded && extractedValue.length > 100,

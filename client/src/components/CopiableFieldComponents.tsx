@@ -193,10 +193,10 @@ export const CopiableField = memo(
     return (
       <div className="space-y-2">
         <div className="grid grid-cols-10 items-start relative group">
-          <span className="text-muted-foreground col-span-2">{label}:</span>
+          <span className="pt-2 col-span-2 font-semibold">{label}:</span>
           <code
             className={cn(
-              "col-span-8 bg-muted px-2 py-1 rounded-sm text-sm font-medium flex items-center justify-between relative border-2",
+              "col-span-8 bg-muted px-2 py-1 rounded text-sm font-medium flex items-center justify-between relative border-2",
               {
                 "border-red-300": isValid === false,
                 "border-green-300": isValid === true,
@@ -256,17 +256,18 @@ export const CopiableField = memo(
 
         {isValid === true && extractedValue && (
           <div className="pl-[20%] text-sm">
-            <div className="bg-green-50 border border-green-200 rounded p-2">
-              <div className="text-xs text-green-700 mb-1">
-                Extracted Value:
-              </div>
+            <div className="bg-green-100 border border-green-200 rounded p-2">
+              <div className="text-green-700 mb-1">Extracted Value:</div>
               <div className="flex flex-col items-end">
                 <div
-                  className={cn("text-green-900 break-words w-full", {
-                    "line-clamp-5":
-                      !extractedValueExpanded && extractedValue.length > 100,
-                    "max-h-none": extractedValueExpanded,
-                  })}
+                  className={cn(
+                    "text-green-900 break-words w-full font-mono font-semibold",
+                    {
+                      "line-clamp-5":
+                        !extractedValueExpanded && extractedValue.length > 100,
+                      "max-h-none": extractedValueExpanded,
+                    },
+                  )}
                 >
                   {extractedValue}
                 </div>

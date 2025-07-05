@@ -17,20 +17,24 @@ type APIResponse = {
   };
 };
 
-export const extract = async (body: {
-  html: string;
-  fieldsToExtractSelectorsFor: FieldForAPI[];
-  model: string;
-  attachments: Attachment[];
-  htmlInput: string;
-  fields: Field[];
-}): Promise<ExtractionResult> => {
-  console.log(process.env.API_URL);
+export const extract = async (
+  body: {
+    html: string;
+    fieldsToExtractSelectorsFor: FieldForAPI[];
+    model: string;
+    attachments: Attachment[];
+    htmlInput: string;
+    fields: Field[];
+  },
+  apiKey: string,
+): Promise<ExtractionResult> => {
+  console.log("API key: ", apiKey);
   const response = await fetch(`${process.env.API_URL}/extract`, {
     method: "POST",
     body: JSON.stringify(body),
     headers: {
       "Content-Type": "application/json",
+      "x-api-key": apiKey,
     },
   });
   const data = (await response.json()) as APIResponse;
