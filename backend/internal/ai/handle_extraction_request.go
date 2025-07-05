@@ -42,6 +42,7 @@ var MODEL_LIST = []string{
 	"google/gemini-2.5-flash-preview-05-20",
 	"google/gemini-2.5-flash-lite-preview-06-17",
 	"google/gemini-2.5-pro",
+	"openrouter/cypher-alpha:free",
 }
 
 type ModelPrice struct {
@@ -69,6 +70,10 @@ var MODEL_PRICE_MAP = map[string]ModelPrice{
 	"google/gemini-2.5-pro": {
 		InputTokens:  1.25,
 		OutputTokens: 10,
+	},
+	"openrouter/cypher-alpha:free": {
+		InputTokens:  0,
+		OutputTokens: 0,
 	},
 }
 
@@ -151,6 +156,7 @@ func SendExtractionMessageOpenAI(request SendExtractionMessageRequest, config co
 			fmt.Println("Success")
 			return response, nil
 		} else {
+			fmt.Println("Error", err)
 			total_input_tokens += response.Usage.InputTokens
 			total_output_tokens += response.Usage.OutputTokens
 			try_count++
@@ -222,6 +228,10 @@ func attemptExtractionWithModel(request SendExtractionMessageRequest, config con
 
 	maxReasoningTokens := 5000
 	exclude := false
+	sorting := openrouter.ProviderSortingThroughput
+	if request.Model == "x-ai/grok-3-mini" {
+		sorting = openrouter.ProviderSortingPrice
+	}
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
 		openrouter.ChatCompletionRequest{
@@ -235,6 +245,10 @@ func attemptExtractionWithModel(request SendExtractionMessageRequest, config con
 					Description: "The response from the AI API",
 					Schema:      schema,
 				},
+			},
+			Provider: &openrouter.ChatProvider{
+				DataCollection: openrouter.DataCollectionAllow,
+				Sort:           sorting,
 			},
 			Reasoning: &openrouter.ChatCompletionReasoning{
 				MaxTokens: &maxReasoningTokens,
@@ -254,8 +268,7 @@ func attemptExtractionWithModel(request SendExtractionMessageRequest, config con
 		OutputTokens: resp.Usage.CompletionTokens,
 	}
 
-	b, _ := json.MarshalIndent(resp, "", "\t") // Save full response to file
-	os.WriteFile("response.json", b, 0644)
+	b, _ := json.MarshalIndent(resp, "", "\t")
 	log.Printf("Response: %s", string(b))
 	responseBytes, err := json.MarshalIndent(resp, "", "  ")
 	if err != nil {
