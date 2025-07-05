@@ -22,11 +22,6 @@ const FieldItem = memo(
   }: {
     field: Omit<Field, "name">;
     errors: { [key: string]: string };
-    updateField: (
-      id: string,
-      key: keyof Omit<Field, "id">,
-      value: string,
-    ) => void;
     removeField: (id: string) => void;
   }) => {
     return (
@@ -147,18 +142,6 @@ export const Form = ({
     setFields(fields.filter((field) => field.id !== id));
   };
 
-  const updateField = (
-    id: string,
-    key: keyof Omit<Field, "id">,
-    value: string,
-  ) => {
-    setFields(
-      fields.map((field) =>
-        field.id === id ? { ...field, [key]: value } : field,
-      ),
-    );
-  };
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -246,7 +229,6 @@ export const Form = ({
             key={field.id}
             field={field}
             errors={errors}
-            updateField={updateField}
             removeField={removeField}
           />
         ))}
