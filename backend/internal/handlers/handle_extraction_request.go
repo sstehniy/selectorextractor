@@ -20,6 +20,12 @@ func HandleHealthCheck(c echo.Context) error {
 
 func HandleExtractionRequest(c echo.Context, cfg config.AIConfig) error {
 	logging.InfoLogger.Println("Received extraction request")
+	apiKey := c.Request().Header.Get("X-API-Key")
+	if apiKey == "" {
+		logging.ErrorLogger.Println("No API key provided")
+		return response.InternalError(c, "No API key provided")
+	}
+	fmt.Println("API key: ", apiKey)
 
 	var body ai.SendExtractionMessageRequest
 	if err := c.Bind(&body); err != nil {
@@ -40,7 +46,7 @@ func HandleExtractionRequest(c echo.Context, cfg config.AIConfig) error {
 	logging.InfoLogger.Printf("Processing extraction request with model: %s", body.Model)
 
 	// Process request
-	result, err := ai.SendExtractionMessageOpenAI(body, cfg)
+	result, err := ai.SendExtractionMessageOpenAI(body, apiKey, cfg)
 	if err != nil {
 		logging.ErrorLogger.Printf("Failed to process extraction request: %v", err)
 		return response.InternalError(c, "Failed to process extraction request")
@@ -58,11 +64,11 @@ func validateExtractionRequest(req ai.SendExtractionMessageRequest) error {
 	}
 
 	if len(req.FieldsToExtractSelectorsFor) == 0 {
-		return fmt.Errorf("Fields to extract selectors for is required")
+		return fmt.Errorf("fields to extract selectors for is required")
 	}
 
 	if req.Model == "" {
-		return fmt.Errorf("Model is required")
+		return fmt.Errorf("model is required")
 	}
 
 	validModel := false
@@ -73,7 +79,7 @@ func validateExtractionRequest(req ai.SendExtractionMessageRequest) error {
 		}
 	}
 	if !validModel {
-		return fmt.Errorf("Invalid model specified")
+		return fmt.Errorf("invalid model specified")
 	}
 
 	return nil

@@ -133,7 +133,7 @@ func createEmptyResponse(model string, usage TokenUsage) SendExtractionMessageRe
 
 const MAX_TRIES = 3
 
-func SendExtractionMessageOpenAI(request SendExtractionMessageRequest, config config.AIConfig) (SendExtractionMessageResponse, error) {
+func SendExtractionMessageOpenAI(request SendExtractionMessageRequest, apiKey string, config config.AIConfig) (SendExtractionMessageResponse, error) {
 	// If no model specified, use a default model order
 	model := request.Model
 	if model == "" {
@@ -146,7 +146,7 @@ func SendExtractionMessageOpenAI(request SendExtractionMessageRequest, config co
 	var err error
 	for try_count < MAX_TRIES {
 		fmt.Println("Attempt", try_count+1)
-		response, err := attemptExtractionWithModel(request, config)
+		response, err := attemptExtractionWithModel(request, apiKey, config)
 		if err == nil {
 			fmt.Println("Success")
 			return response, nil
@@ -167,7 +167,11 @@ func SendExtractionMessageOpenAI(request SendExtractionMessageRequest, config co
 }
 
 // New helper function to attempt extraction with a single model
-func attemptExtractionWithModel(request SendExtractionMessageRequest, config config.AIConfig) (SendExtractionMessageResponse, error) {
+func attemptExtractionWithModel(request SendExtractionMessageRequest, apiKey string, config config.AIConfig) (SendExtractionMessageResponse, error) {
+	if apiKey == "" {
+		return createEmptyResponse(request.Model, TokenUsage{}),
+			fmt.Errorf("API key is required")
+	}
 	// Validate the model is in the allowed list
 	var modelFound bool
 	for _, allowedModel := range MODEL_LIST {
@@ -189,7 +193,7 @@ func attemptExtractionWithModel(request SendExtractionMessageRequest, config con
 	}
 	fieldsToExtractString := string(fieldsToExtractBytes)
 
-	client := openrouter.NewClient(config.OpenRouterAPIKey)
+	client := openrouter.NewClient(apiKey)
 	systemPrompt := getSystemPrompt()
 	prompt := getPrompt()
 

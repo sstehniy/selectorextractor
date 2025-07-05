@@ -53,10 +53,9 @@ func Load() *Config {
 			},
 		},
 		AI: AIConfig{
-			OpenRouterAPIKey: os.Getenv("OPENROUTER_API_KEY"),
-			DefaultModel:     getEnvOrDefault("DEFAULT_MODEL", "x-ai/grok-3-mini"),
-			MaxTokens:        getIntEnvOrDefault("MAX_TOKENS", 8192),
-			Temperature:      getFloatEnvOrDefault("TEMPERATURE", 0.4),
+			DefaultModel: getEnvOrDefault("DEFAULT_MODEL", "x-ai/grok-3-mini"),
+			MaxTokens:    getIntEnvOrDefault("MAX_TOKENS", 8192),
+			Temperature:  getFloatEnvOrDefault("TEMPERATURE", 0.4),
 		},
 	}
 }
