@@ -177,7 +177,7 @@ export const ResultComponent = ({ versionedResult }: ResultComponentProps) => {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="px-4 pb-3 pt-1">
-                      <div className="grid gap-2 text-sm">
+                      <div className="grid gap-2 text-sm max-w-full">
                         {field.selector && (
                           <CopiableField
                             label="Selector"

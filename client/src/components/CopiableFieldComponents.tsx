@@ -196,7 +196,7 @@ export const CopiableField = memo(
           <span className="text-muted-foreground col-span-2">{label}:</span>
           <code
             className={cn(
-              "col-span-8 bg-muted px-2 py-1 rounded text-sm font-medium flex items-center justify-between relative border-2",
+              "col-span-8 bg-muted px-2 py-1 rounded-sm text-sm font-medium flex items-center justify-between relative border-2",
               {
                 "border-red-300": isValid === false,
                 "border-green-300": isValid === true,
@@ -274,7 +274,7 @@ export const CopiableField = memo(
                   {extractedValue.length > 100 && (
                     <button
                       onClick={handleToggleExpanded}
-                      className="mt-1 text-xs bg-blue-50 text-blue-600 hover:text-blue-800 hover:bg-blue-100 font-medium px-2 py-1 rounded transition-colors shadow-sm border border-blue-200"
+                      className="mt-1 text-xs bg-blue-50 text-blue-600 hover:text-blue-800 hover:bg-blue-100 font-medium px-2 py-1 rounded-md transition-colors shadow-sm border border-blue-200"
                     >
                       {extractedValueExpanded ? "Show less" : "Show more"}
                     </button>

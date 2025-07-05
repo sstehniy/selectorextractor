@@ -45,7 +45,7 @@ export const CodeBlockComponent = ({
     filename: string;
     code: string;
   }[] = useMemo(() => {
-    const formattedFieldName = fieldName.replaceAll(" ", "-");
+    const formattedFieldName = fieldName.replace(/ /g, "-");
     const config = [];
     if (javaScriptFunction) {
       config.push({
@@ -190,11 +190,14 @@ export const CodeBlockComponent = ({
             <div className="text-xs text-green-700 mb-1">Extracted Value:</div>
             <div className="flex flex-col items-end">
               <div
-                className={cn("text-green-900 break-words w-full", {
-                  "line-clamp-5":
-                    !extractedValueExpanded && extractedValue.length > 100,
-                  "max-h-none": extractedValueExpanded,
-                })}
+                className={cn(
+                  "text-green-900 break-all overflow-hidden w-full min-w-0",
+                  {
+                    "line-clamp-5":
+                      !extractedValueExpanded && extractedValue.length > 100,
+                    "max-h-none": extractedValueExpanded,
+                  },
+                )}
               >
                 {extractedValue}
               </div>

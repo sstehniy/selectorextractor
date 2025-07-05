@@ -170,12 +170,7 @@ export const App = () => {
   return (
     <div className="h-screen bg-gradient-to-b from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900 flex flex-col lg:flex-row overflow-hidden">
       {/* Sidebar */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative pb-10 w-full lg:w-[28rem] xl:w-[32rem] bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm border-b lg:border-b-0 lg:border-r border-neutral-200 dark:border-neutral-700 p-4 lg:p-6 overflow-y-auto flex-shrink-0"
-      >
+      <div className="relative pb-10 w-full lg:w-[28rem] xl:w-[32rem] bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm border-b lg:border-b-0 lg:border-r border-neutral-200 dark:border-neutral-700 p-4 lg:p-6 overflow-y-auto flex-shrink-0">
         <div className="sticky top-0 pb-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl lg:text-3xl font-bold text-center lg:text-left text-default-font dark:text-neutral-50">
@@ -196,12 +191,12 @@ export const App = () => {
             © 2024 AI Scrape Assistant. All rights reserved.
           </p>
         </footer>
-      </motion.div>
+      </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden dark:bg-brand-primary bg-neutral-100 container">
+      <div className="flex-1 flex flex-col overflow-hidden dark:bg-brand-primary bg-neutral-100 container overflow-y-auto min-h-0">
         <div className=" flex-1 flex flex-col p-4 lg:p-6 py-0 lg:py-0 mx-auto w-full min-h-0">
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="flex-1 ">
             <div className="h-6"></div>
             {extractMutation.isPending && (
               <motion.div
