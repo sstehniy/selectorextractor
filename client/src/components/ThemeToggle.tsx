@@ -1,15 +1,46 @@
-import React from "react";
-import { useTheme } from "../contexts/ThemeContext";
+import React, { useEffect, useState } from "react";
+import { useThemeContext } from "../contexts/ThemeContext";
 import { Button } from "./ui/button";
 
 export const ThemeToggle: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useThemeContext();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        aria-label="Toggle theme"
+      >
+        <svg
+          className="h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+          />
+        </svg>
+      </Button>
+    );
+  }
 
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={toggleTheme}
+      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
       className="h-8 w-8 p-0 hover:bg-neutral-100 dark:hover:bg-neutral-800"
       aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
     >
