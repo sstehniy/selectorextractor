@@ -1,34 +1,19 @@
+"use client";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import { ResultComponentSkeleton } from "./components/ResultComponentSkeleton";
+import { ResultComponentSkeleton } from "@/components/ResultComponentSkeleton";
 import type {
   Attachment,
   ExtractionResult,
   Field,
-  FieldType,
   VersionedExtractionResult,
-} from "./types";
-import type { Option } from "./modelSelectConfig";
-import { Form } from "./components/Form";
-import { ResultsList } from "./components/ResultsList";
+} from "@/types";
+import type { Option } from "@/modelSelectConfig";
+import { Form } from "@/components/Form";
+import { ResultsList } from "@/components/ResultsList";
 import { motion } from "framer-motion";
-import { ThemeToggle } from "./components/ThemeToggle";
-
-type FieldForAPI = {
-  name: string;
-  type: FieldType;
-  additionalInfo: string;
-};
-
-type APIResponse = {
-  success: boolean;
-  data: ExtractionResult;
-  error?: {
-    code: string;
-    message: string;
-  };
-};
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { extract, FieldForAPI } from "./actions";
 
 // Create a query to hold your collection of results
 const useExtractionResults = () => {
@@ -54,10 +39,7 @@ const useExtractMutation = () => {
       fields: Field[];
     }
   >({
-    mutationFn: async (body) => {
-      const response = await axios.post<APIResponse>("/api/v1/extract", body);
-      return response.data.data;
-    },
+    mutationFn: extract,
     onSuccess: (data, vars) => {
       queryClient.setQueryData<VersionedExtractionResult[]>(
         ["extractionResults"],
@@ -94,11 +76,11 @@ const useExtractMutation = () => {
   });
 };
 
-export const App = () => {
+export default function App() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { data: versionedExtractionResults } = useExtractionResults();
   const extractMutation = useExtractMutation();
-  const handleExtract = (
+  const handleExtract = async (
     allHtmlInput: string,
     fieldsToExtractSelectorsFor: FieldForAPI[],
     model: Option,
@@ -219,4 +201,4 @@ export const App = () => {
       </div>
     </div>
   );
-};
+}
