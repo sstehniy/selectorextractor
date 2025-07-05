@@ -9,8 +9,7 @@ import {
   SelectContent,
   SelectItem,
 } from "./ui/select";
-import { selectOptions } from "@/modelSelectConfig";
-import type { Option } from "@/modelSelectConfig";
+import { selectOptions, Option } from "@/lib/modelSelectConfig";
 import { memo, useMemo, useState } from "react";
 import { Input } from "./ui/input";
 import type { Field, Attachment, FieldType } from "@/types";

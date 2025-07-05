@@ -25,7 +25,8 @@ export const extract = async (body: {
   htmlInput: string;
   fields: Field[];
 }): Promise<ExtractionResult> => {
-  const response = await fetch("http://localhost:1323/api/v1/extract", {
+  console.log(process.env.API_URL);
+  const response = await fetch(`${process.env.API_URL}/extract`, {
     method: "POST",
     body: JSON.stringify(body),
     headers: {

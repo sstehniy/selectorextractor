@@ -24,8 +24,7 @@ import {
 } from "lucide-react";
 import { CopiableField, CopiableSelector } from "./CopiableFieldComponents";
 import type { VersionedExtractionResult } from "@/types";
-import { selectOptions } from "@/modelSelectConfig";
-import type { Option } from "@/modelSelectConfig";
+import { selectOptions, Option } from "@/lib/modelSelectConfig";
 import { CodeBlockComponent } from "./CodeBlock";
 
 type ResultComponentProps = {

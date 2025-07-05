@@ -1,5 +1,5 @@
 import { DollarSign } from "lucide-react";
-import { PriceIndicator as PriceIndicatorType } from "../modelSelectConfig";
+import { PriceIndicator as PriceIndicatorType } from "@/lib/modelSelectConfig";
 export const PriceIndicator = ({ level }: { level: PriceIndicatorType }) => {
   const getColor = (index: number) => {
     if (level === PriceIndicatorType.LOW && index === 0)

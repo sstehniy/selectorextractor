@@ -8,7 +8,7 @@ import type {
   Field,
   VersionedExtractionResult,
 } from "@/types";
-import type { Option } from "@/modelSelectConfig";
+import { Option } from "@/lib/modelSelectConfig";
 import { Form } from "@/components/Form";
 import { ResultsList } from "@/components/ResultsList";
 import { motion } from "framer-motion";
