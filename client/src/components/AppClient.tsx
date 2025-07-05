@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ResultComponentSkeleton } from "@/components/ResultComponentSkeleton";
 import type {
@@ -145,9 +145,9 @@ export function AppClient() {
     );
   };
 
-  const sortedVersionedExtractionResults = versionedExtractionResults?.sort(
-    (a, b) => b.version - a.version,
-  );
+  const sortedVersionedExtractionResults = useMemo(() => {
+    return versionedExtractionResults?.sort((a, b) => b.version - a.version);
+  }, [versionedExtractionResults]);
 
   return (
     <>
